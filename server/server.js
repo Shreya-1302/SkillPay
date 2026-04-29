@@ -19,6 +19,7 @@ app.use(cookieParser());
 
 // Routes
 app.use('/api/auth', require('./routes/auth.routes'));
+app.use('/api/gigs', require('./routes/gig.routes'));
 
 // Global Error Handler (must be after routes)
 app.use(errorHandler);
