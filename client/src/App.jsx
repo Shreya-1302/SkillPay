@@ -5,6 +5,13 @@ import VerifyEmail from './pages/VerifyEmail';
 import ProtectedRoute from './components/ProtectedRoute';
 import { useAuth } from './hooks/useAuth';
 
+import Home from './pages/Home';
+import GigList from './pages/GigList';
+import GigDetail from './pages/GigDetail';
+import CreateGig from './pages/student/CreateGig';
+import EditGig from './pages/student/EditGig';
+import MyGigs from './pages/student/MyGigs';
+
 // Mock dashboard components for demonstration
 const AdminDashboard = () => <div className="p-8"><h1 className="text-2xl font-bold">Admin Dashboard</h1></div>;
 const StudentDashboard = () => <div className="p-8"><h1 className="text-2xl font-bold">Student Dashboard</h1></div>;
@@ -21,13 +28,9 @@ function App() {
       <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
       <Route path="/verify-email" element={<VerifyEmail />} />
       
-      {/* Root redirection based on auth & role */}
-      <Route path="/" element={
-        !isAuthenticated ? <Navigate to="/login" /> :
-        user?.role === 'admin' ? <Navigate to="/admin-dashboard" /> :
-        user?.role === 'student' ? <Navigate to="/student-dashboard" /> :
-        <Navigate to="/dashboard" />
-      } />
+      <Route path="/" element={<Home />} />
+      <Route path="/gigs" element={<GigList />} />
+      <Route path="/gigs/:id" element={<GigDetail />} />
 
       {/* Protected Routes */}
       <Route element={<ProtectedRoute />}>
@@ -37,6 +40,9 @@ function App() {
 
       <Route element={<ProtectedRoute allowedRoles={['student']} />}>
         <Route path="/student-dashboard" element={<StudentDashboard />} />
+        <Route path="/student/create-gig" element={<CreateGig />} />
+        <Route path="/student/edit-gig/:id" element={<EditGig />} />
+        <Route path="/student/my-gigs" element={<MyGigs />} />
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
