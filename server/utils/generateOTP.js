@@ -1,11 +1,10 @@
-/**
- * Generates a random 6-digit OTP and its expiry timestamp.
- * @returns {Object} { otp, otpExpiry }
- */
 const generateOTP = () => {
+  // Generate a 6-digit string
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes from now
+  // Expiry timestamp (Date.now + 10min)
+  const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
   return { otp, otpExpiry };
 };
 
-module.exports = { generateOTP };
+module.exports = generateOTP;

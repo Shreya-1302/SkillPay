@@ -1,7 +1,14 @@
-const requireRole = (...roles) => (req, res, next) => {
-  if (!req.user || !roles.includes(req.user.role))
-    return res.status(403).json({ message: 'Forbidden: insufficient role' });
-  next();
+const ApiError = require('../utils/ApiError');
+
+const requireRole = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return next(
+        new ApiError(403, 'User role is not authorized to access this route')
+      );
+    }
+    next();
+  };
 };
 
 module.exports = { requireRole };

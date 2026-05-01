@@ -1,18 +1,26 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const ApiError = require('../utils/ApiError');
 
-const protect = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith('Bearer '))
-    return res.status(401).json({ message: 'No token provided' });
+const protect = (req, res, next) => {
+  let token;
 
-  const token = authHeader.split(' ')[1];
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+
+  if (!token) {
+    return next(new ApiError(401, 'Not authorized to access this route'));
+  }
+
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded.id).select('-passwordHash -otp');
+    req.user = decoded; // attach decoded payload
     next();
-  } catch {
-    res.status(401).json({ message: 'Token invalid or expired' });
+  } catch (err) {
+    return next(new ApiError(401, 'Not authorized to access this route'));
   }
 };
 
