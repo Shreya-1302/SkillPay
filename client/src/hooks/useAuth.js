@@ -1,7 +1,7 @@
 import { useAuthStore } from '../store/authStore';
 
 export const useAuth = () => {
-  const { user, token, setAuth, clearAuth } = useAuthStore();
+  const { user, token, refreshToken, setAuth, clearAuth } = useAuthStore();
 
   const isAuthenticated = !!token;
   const isStudent = user?.role === 'student';
@@ -11,6 +11,7 @@ export const useAuth = () => {
   return {
     user,
     token,
+    refreshToken,
     isAuthenticated,
     isStudent,
     isClient,

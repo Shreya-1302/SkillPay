@@ -30,12 +30,20 @@ connectDB();
 app.use(helmet());
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(morgan('dev'));
+
+// ⚠️  Webhook route MUST be mounted before express.json() so it receives the
+// raw Buffer body needed for Razorpay HMAC signature verification
+app.use('/api/webhooks', require('./routes/webhook.routes'));
+
 app.use(express.json());
 app.use(cookieParser());
 
 // Mount Routes
 app.use('/api/auth', require('./routes/auth.routes'));
-// Optional: app.use('/api/gigs', require('./routes/gig.routes')); // Un-comment when gigs route is ready
+app.use('/api/gigs', require('./routes/gig.routes'));
+app.use('/api/orders', require('./routes/order.routes'));
+app.use('/api/milestones', require('./routes/milestone.routes'));
+app.use('/api/wallet', require('./routes/wallet.routes'));
 
 // Global Error Handler (must be after routes)
 app.use(errorHandler);

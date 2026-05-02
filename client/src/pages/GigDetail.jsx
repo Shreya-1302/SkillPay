@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { Star, Clock, Calendar, CheckCircle2, AlertCircle } from 'lucide-react';
@@ -10,11 +10,16 @@ import { useAuth } from '../hooks/useAuth';
 import Navbar from '../components/Navbar';
 import Spinner from '../components/ui/Spinner';
 import Badge from '../components/ui/Badge';
+import Modal from '../components/ui/Modal';
+import RazorpayCheckout from '../components/RazorpayCheckout';
 
 const GigDetail = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [activeImage, setActiveImage] = useState(0);
+  const [isHireModalOpen, setIsHireModalOpen] = useState(false);
+  const [requirements, setRequirements] = useState('');
 
   const { data: gig, isLoading, isError } = useQuery({
     queryKey: ['gig', id],
@@ -48,7 +53,7 @@ const GigDetail = () => {
     );
   }
 
-  const isOwner = user?._id === gig.student?._id;
+  const isOwner = user?.id === gig.studentId?._id?.toString() || user?.id === gig.studentId?.toString();
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -62,7 +67,7 @@ const GigDetail = () => {
             <div>
               <div className="flex items-center gap-3 mb-4">
                 <Badge variant="secondary">{gig.category}</Badge>
-                {gig.isActive ? (
+                {gig.status === 'active' ? (
                   <Badge variant="success">Active</Badge>
                 ) : (
                   <Badge variant="warning">Paused</Badge>
@@ -76,16 +81,16 @@ const GigDetail = () => {
                 <div className="flex items-center gap-2">
                   <div className="h-8 w-8 rounded-full bg-secondary overflow-hidden">
                     <img 
-                      src={gig.student?.avatar || `https://ui-avatars.com/api/?name=${gig.student?.name || 'S'}&background=random`}
-                      alt={gig.student?.name}
+                      src={gig.studentId?.avatar || `https://ui-avatars.com/api/?name=${gig.studentId?.name || 'S'}&background=random`}
+                      alt={gig.studentId?.name}
                       className="h-full w-full object-cover"
                     />
                   </div>
-                  <span className="font-medium">{gig.student?.name}</span>
+                  <span className="font-medium">{gig.studentId?.name}</span>
                 </div>
                 <div className="flex items-center gap-1 text-yellow-500 font-medium">
                   <Star className="h-4 w-4 fill-current" />
-                  <span>{gig.rating || 'New'}</span>
+                  <span>{gig.avgRating > 0 ? gig.avgRating : 'New'}</span>
                 </div>
               </div>
             </div>
@@ -130,12 +135,12 @@ const GigDetail = () => {
             </div>
 
             {/* Skills / Tags */}
-            {gig.skills && gig.skills.length > 0 && (
+            {gig.tags && gig.tags.length > 0 && (
               <div>
                 <h3 className="font-bold mb-3">Skills</h3>
                 <div className="flex flex-wrap gap-2">
-                  {gig.skills.map((skill, idx) => (
-                    <Badge key={idx} variant="outline">{skill}</Badge>
+                  {gig.tags.map((tag, idx) => (
+                    <Badge key={idx} variant="outline">{tag}</Badge>
                   ))}
                 </div>
               </div>
@@ -165,12 +170,12 @@ const GigDetail = () => {
                 </div>
 
                 {!isOwner ? (
-                  <Link 
-                    to={`/hire/${gig._id}`}
+                  <button 
+                    onClick={() => setIsHireModalOpen(true)}
                     className="flex w-full justify-center items-center gap-2 bg-primary text-primary-foreground py-3 rounded-full font-bold hover:bg-primary/90 transition-colors shadow-md hover:shadow-lg"
                   >
                     Continue to Hire
-                  </Link>
+                  </button>
                 ) : (
                   <Link 
                     to={`/student/edit-gig/${gig._id}`}
@@ -185,25 +190,25 @@ const GigDetail = () => {
               <div className="bg-card rounded-2xl border border-border/50 p-6 text-center">
                 <div className="w-24 h-24 rounded-full bg-secondary overflow-hidden mx-auto mb-4 border-2 border-border/50">
                   <img 
-                    src={gig.student?.avatar || `https://ui-avatars.com/api/?name=${gig.student?.name || 'S'}&background=random`}
-                    alt={gig.student?.name}
+                    src={gig.studentId?.avatar || `https://ui-avatars.com/api/?name=${gig.studentId?.name || 'S'}&background=random`}
+                    alt={gig.studentId?.name}
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <h3 className="text-lg font-bold mb-1">{gig.student?.name}</h3>
-                <p className="text-sm text-muted-foreground mb-4">{gig.student?.university || 'University Student'}</p>
+                <h3 className="text-lg font-bold mb-1">{gig.studentId?.name}</h3>
+                <p className="text-sm text-muted-foreground mb-4">{gig.studentId?.university || 'University Student'}</p>
                 
                 <div className="grid grid-cols-2 gap-4 border-t border-border/50 pt-4 text-sm">
                   <div>
                     <p className="text-muted-foreground mb-1">Rating</p>
                     <div className="flex items-center justify-center gap-1 font-semibold">
                       <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
-                      <span>{gig.rating || 'New'}</span>
+                      <span>{gig.avgRating > 0 ? gig.avgRating : 'New'}</span>
                     </div>
                   </div>
                   <div>
                     <p className="text-muted-foreground mb-1">Joined</p>
-                    <p className="font-semibold">{formatDate(gig.student?.createdAt)}</p>
+                    <p className="font-semibold">{formatDate(gig.studentId?.createdAt)}</p>
                   </div>
                 </div>
               </div>
@@ -212,6 +217,41 @@ const GigDetail = () => {
           </aside>
         </div>
       </main>
+
+      <Modal 
+        isOpen={isHireModalOpen} 
+        onClose={() => setIsHireModalOpen(false)} 
+        title={`Hire ${gig.studentId?.name || 'Student'}`}
+      >
+        <div className="space-y-6 text-foreground">
+          <div>
+            <h4 className="font-semibold mb-2">Project Requirements</h4>
+            <p className="text-sm text-muted-foreground mb-4">
+              Please describe what you need in detail so the student can start working right away.
+            </p>
+            <textarea
+              className="w-full bg-secondary border border-border/50 rounded-xl p-4 min-h-[120px] resize-y focus:outline-none focus:border-primary/50 text-foreground"
+              placeholder="I need a..."
+              value={requirements}
+              onChange={(e) => setRequirements(e.target.value)}
+            />
+          </div>
+          
+          <div className="border-t border-border/50 pt-6">
+            <RazorpayCheckout 
+              gigId={gig._id}
+              gigTitle={gig.title}
+              amount={gig.basePrice}
+              requirements={requirements}
+              onSuccess={(orderId) => {
+                setIsHireModalOpen(false);
+                navigate(`/orders/${orderId}`);
+              }}
+            />
+          </div>
+        </div>
+      </Modal>
+
     </div>
   );
 };

@@ -38,8 +38,8 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'admin', 'freelancer'],
-      default: 'user',
+      enum: ['client', 'student', 'admin'],
+      default: 'client',
     },
     walletBalance: {
       type: Number,

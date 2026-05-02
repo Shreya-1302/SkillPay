@@ -29,7 +29,7 @@ const GigCard = ({ gig }) => {
           </Badge>
           <div className="flex items-center gap-1 text-sm font-medium text-yellow-500">
             <Star className="h-4 w-4 fill-current" />
-            <span>{gig.rating || 'New'}</span>
+            <span>{gig.avgRating > 0 ? gig.avgRating : 'New'}</span>
           </div>
         </div>
 
@@ -42,13 +42,13 @@ const GigCard = ({ gig }) => {
         <div className="mt-4 flex items-center gap-2">
           <div className="h-8 w-8 overflow-hidden rounded-full bg-secondary">
             <img
-              src={gig.student?.avatar || `https://ui-avatars.com/api/?name=${gig.student?.name || 'S'}&background=random`}
-              alt={gig.student?.name}
+              src={gig.studentId?.avatar || `https://ui-avatars.com/api/?name=${gig.studentId?.name || 'S'}&background=random`}
+              alt={gig.studentId?.name}
               className="h-full w-full object-cover"
             />
           </div>
           <span className="text-sm font-medium text-muted-foreground line-clamp-1">
-            {gig.student?.name || 'Anonymous Student'}
+            {gig.studentId?.name || 'Anonymous Student'}
           </span>
         </div>
 

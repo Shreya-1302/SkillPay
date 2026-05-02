@@ -23,7 +23,7 @@ const Login = () => {
     setLoading(true);
     try {
       const response = await login(formData);
-      setAuth(response.user, response.accessToken);
+      setAuth(response.user, response.accessToken, response.refreshToken);
       toast.success('Welcome back!');
       
       // Redirect based on role

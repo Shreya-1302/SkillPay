@@ -39,7 +39,7 @@ const EditGig = () => {
         price: data.basePrice,
         deliveryDays: data.deliveryDays,
         revisions: data.revisions || 1,
-        skills: data.skills?.join(', ') || '',
+        skills: data.tags?.join(', ') || '',
       });
       setExistingImages(data.portfolioImages || []);
     }
@@ -103,8 +103,8 @@ const EditGig = () => {
     data.append('deliveryDays', formData.deliveryDays);
     data.append('revisions', formData.revisions);
     
-    const skillsArray = formData.skills.split(',').map(s => s.trim()).filter(s => s);
-    data.append('skills', JSON.stringify(skillsArray));
+    const tagsArray = formData.skills.split(',').map(s => s.trim()).filter(s => s);
+    data.append('tags', JSON.stringify(tagsArray));
 
     // Optional: send existing images data to keep them, depending on backend implementation
     data.append('existingImages', JSON.stringify(existingImages));

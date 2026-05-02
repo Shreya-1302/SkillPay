@@ -24,7 +24,7 @@ const createGig = async (req, res, next) => {
     }
 
     const gig = new Gig({
-      studentId: req.user._id, // Assuming req.user is set by auth middleware
+      studentId: req.user.id, // Assuming req.user is set by auth middleware
       title,
       description,
       category,
@@ -44,7 +44,8 @@ const createGig = async (req, res, next) => {
 
 const getGigs = async (req, res, next) => {
   try {
-    const { search, category, minPrice, maxPrice, maxDays, sort, page = 1, limit = 10 } = req.query;
+    const { search, category, minPrice, maxPrice, maxDays, maxDeliveryDays, sort, page = 1, limit = 10 } = req.query;
+    const effectiveMaxDays = maxDays || maxDeliveryDays; // support both param names
     
     let query = { status: 'active' }; // Only show active gigs
 
@@ -62,7 +63,7 @@ const getGigs = async (req, res, next) => {
       if (maxPrice) query.basePrice.$lte = Number(maxPrice);
     }
 
-    if (maxDays) query.deliveryDays = { $lte: Number(maxDays) };
+    if (effectiveMaxDays) query.deliveryDays = { $lte: Number(effectiveMaxDays) };
 
     // Sorting
     let sortOption = { createdAt: -1 }; // Default sort
@@ -129,12 +130,12 @@ const updateGig = async (req, res, next) => {
     }
 
     // Check ownership
-    if (gig.studentId.toString() !== req.user._id.toString()) {
+    if (gig.studentId.toString() !== req.user.id.toString()) {
       return next(new ApiError(403, 'Not authorized to update this gig'));
     }
 
     // Fields to update
-    const { title, description, category, basePrice, deliveryDays, tags, existingImages } = req.body;
+    const { title, description, category, basePrice, deliveryDays, tags, existingImages, status } = req.body;
     
     // Handle existing images (from frontend, might be sent as JSON string or array)
     let currentImages = [];
@@ -175,7 +176,8 @@ const updateGig = async (req, res, next) => {
       basePrice: basePrice ? Number(basePrice) : gig.basePrice,
       deliveryDays: deliveryDays ? Number(deliveryDays) : gig.deliveryDays,
       tags: parsedTags,
-      portfolioImages: updatedImages
+      portfolioImages: updatedImages,
+      ...(status && { status }), // only update status if provided
     };
 
     const updatedGig = await Gig.findByIdAndUpdate(req.params.id, updatedData, {
@@ -198,7 +200,7 @@ const deleteGig = async (req, res, next) => {
     }
 
     // Check ownership
-    if (gig.studentId.toString() !== req.user._id.toString()) {
+    if (gig.studentId.toString() !== req.user.id.toString()) {
       return next(new ApiError(403, 'Not authorized to delete this gig'));
     }
 
@@ -215,7 +217,7 @@ const deleteGig = async (req, res, next) => {
 const getMyGigs = async (req, res, next) => {
   try {
     const gigs = await Gig.find({ 
-        studentId: req.user._id,
+        studentId: req.user.id,
         status: { $ne: 'deleted' } 
     }).sort({ createdAt: -1 });
 

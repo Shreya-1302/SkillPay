@@ -27,9 +27,9 @@ const MyGigs = () => {
   });
 
   const { mutate: toggleStatus } = useMutation({
-    mutationFn: ({ id, isActive }) => {
+    mutationFn: ({ id, status }) => {
       const formData = new FormData();
-      formData.append('isActive', isActive);
+      formData.append('status', status);
       return updateGig(id, formData);
     },
     onSuccess: () => {
@@ -99,7 +99,7 @@ const MyGigs = () => {
                       <td className="p-4">
                         <div className="flex items-center gap-4">
                           <div className="h-12 w-16 rounded bg-secondary overflow-hidden shrink-0">
-                            <img src={gig.portfolioImages?.[0] || ''} alt="" className="h-full w-full object-cover" />
+                            <img src={gig.portfolioImages?.[0] || `https://ui-avatars.com/api/?name=${encodeURIComponent(gig.title)}&size=64&background=random`} alt="" className="h-full w-full object-cover" />
                           </div>
                           <div>
                             <Link to={`/gigs/${gig._id}`} className="font-semibold text-foreground hover:text-primary transition-colors line-clamp-1">
@@ -112,11 +112,11 @@ const MyGigs = () => {
                       <td className="p-4 font-medium text-foreground">{formatINR(gig.basePrice)}</td>
                       <td className="p-4">
                         <div className="flex items-center gap-1 text-yellow-500 font-medium">
-                          ★ {gig.rating || 'N/A'}
+                          ★ {gig.avgRating > 0 ? gig.avgRating : 'N/A'}
                         </div>
                       </td>
                       <td className="p-4">
-                        {gig.isActive ? (
+                        {gig.status === 'active' ? (
                           <Badge variant="success">Active</Badge>
                         ) : (
                           <Badge variant="warning">Paused</Badge>
@@ -139,11 +139,11 @@ const MyGigs = () => {
                             <Edit2 size={18} />
                           </Link>
                           <button 
-                            onClick={() => toggleStatus({ id: gig._id, isActive: !gig.isActive })}
+                            onClick={() => toggleStatus({ id: gig._id, status: gig.status === 'active' ? 'paused' : 'active' })}
                             className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-                            title={gig.isActive ? "Pause Gig" : "Activate Gig"}
+                            title={gig.status === 'active' ? 'Pause Gig' : 'Activate Gig'}
                           >
-                            {gig.isActive ? <PauseCircle size={18} /> : <PlayCircle size={18} />}
+                            {gig.status === 'active' ? <PauseCircle size={18} /> : <PlayCircle size={18} />}
                           </button>
                           <button 
                             onClick={() => handleDelete(gig._id)}
