@@ -3,6 +3,7 @@ const ApiError = require('../utils/ApiError');
 const errorHandler = (err, req, res, next) => {
   let statusCode = err.statusCode || (res.statusCode === 200 ? 500 : res.statusCode);
   let message = err.message || 'Internal Server Error';
+  console.error("GLOBAL ERROR:", err);
 
   // Handle Mongoose CastError (e.g., invalid ObjectId)
   if (err.name === 'CastError' && err.kind === 'ObjectId') {

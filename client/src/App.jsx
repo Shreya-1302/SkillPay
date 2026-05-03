@@ -16,10 +16,9 @@ import Wallet from './pages/student/Wallet';
 import ClientDashboard from './pages/client/ClientDashboard';
 import MyHires from './pages/client/MyHires';
 import OrderDetail from './pages/client/OrderDetail';
-
-// Mock dashboard components for demonstration
+import StudentDashboard from './pages/student/StudentDashboard';
+import MyOrders from './pages/student/MyOrders';
 const AdminDashboard = () => <div className="p-8"><h1 className="text-2xl font-bold">Admin Dashboard</h1></div>;
-const StudentDashboard = () => <div className="p-8"><h1 className="text-2xl font-bold">Student Dashboard</h1></div>;
 const Unauthorized = () => <div className="p-8 text-center text-destructive"><h1 className="text-2xl font-bold">403 - Unauthorized</h1></div>;
 
 function App() {
@@ -46,6 +45,7 @@ function App() {
 
       <Route element={<ProtectedRoute allowedRoles={['student']} />}>
         <Route path="/student-dashboard" element={<StudentDashboard />} />
+        <Route path="/student/orders" element={<MyOrders />} />
         <Route path="/student/create-gig" element={<CreateGig />} />
         <Route path="/student/edit-gig/:id" element={<EditGig />} />
         <Route path="/student/my-gigs" element={<MyGigs />} />

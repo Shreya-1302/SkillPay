@@ -1,15 +1,26 @@
-import { useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
-const useRazorpay = () => {
+export const useRazorpay = () => {
+  const [isLoaded, setIsLoaded] = useState(false);
+
   const loadScript = useCallback(() => {
     return new Promise((resolve) => {
       if (window.Razorpay) {
+        setIsLoaded(true);
         resolve(true);
         return;
       }
+      
+      if (document.getElementById('razorpay-checkout-js')) {
+        resolve(true);
+        return;
+      }
+      
       const script = document.createElement('script');
+      script.id = 'razorpay-checkout-js';
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
       script.onload = () => {
+        setIsLoaded(true);
         resolve(true);
       };
       script.onerror = () => {
@@ -20,19 +31,25 @@ const useRazorpay = () => {
   }, []);
 
   const openCheckout = useCallback(async (options) => {
-    const isLoaded = await loadScript();
-    if (!isLoaded) {
-      alert('Failed to load Razorpay SDK. Please check your connection.');
+    const res = await loadScript();
+    if (!res) {
+      alert('Razorpay SDK failed to load. Please check your internet connection.');
       return;
     }
+
     const rzp = new window.Razorpay(options);
+    
     rzp.on('payment.failed', function (response) {
-      console.error(response.error);
+      console.error('Payment failed', response.error);
+      if (options.onPaymentError) {
+        options.onPaymentError(response.error);
+      } else {
+        alert(response.error.description);
+      }
     });
+
     rzp.open();
   }, [loadScript]);
 
-  return { openCheckout };
+  return { isLoaded, openCheckout };
 };
-
-export default useRazorpay;

@@ -30,6 +30,11 @@ connectDB();
 app.use(helmet());
 app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(morgan('dev'));
+
+// ⚠️  Webhook route MUST be mounted before express.json() so it receives the
+// raw Buffer body needed for Razorpay HMAC signature verification
+app.use('/api/webhooks', require('./routes/webhook.routes'));
+
 app.use(express.json());
 app.use(cookieParser());
 
@@ -42,6 +47,7 @@ app.use('/api/webhooks', require('./routes/webhook.routes'));
 app.use('/api/notifications', require('./routes/notification.routes'));
 app.use('/api/admin', require('./routes/admin.routes'));
 app.use('/api/reviews', require('./routes/review.routes'));
+app.use('/api/milestones', require('./routes/milestone.routes'));
 
 // Global Error Handler (must be after routes)
 app.use(errorHandler);

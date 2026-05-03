@@ -6,11 +6,15 @@ export const useAuthStore = create(
     (set) => ({
       user: null,
       token: null,
-      setAuth: (user, token) => set({ user, token }),
-      clearAuth: () => set({ user: null, token: null }),
+      refreshToken: null,
+      setAuth: (user, token, refreshToken) =>
+        set((state) => ({ user, token, refreshToken: refreshToken || state.refreshToken })),
+      updateUser: (updates) =>
+        set((state) => ({ user: state.user ? { ...state.user, ...updates } : state.user })),
+      clearAuth: () => set({ user: null, token: null, refreshToken: null }),
     }),
     {
-      name: 'auth-storage', // local storage key
+      name: 'auth-storage',
     }
   )
 );

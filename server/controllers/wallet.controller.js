@@ -2,6 +2,7 @@ const Razorpay = require('razorpay');
 const User = require('../models/User');
 const WalletTransaction = require('../models/WalletTransaction');
 const ApiError = require('../utils/ApiError');
+const mongoose = require('mongoose');
 
 const razorpay = new Razorpay({
   key_id: process.env.VITE_RAZORPAY_KEY_ID || 'test',
@@ -189,20 +190,20 @@ const withdraw = async (req, res, next) => {
   }
 };
 
-// @desc    Get earnings by month for Chart
+// @desc    Get monthly earnings for logged-in user
 // @route   GET /api/wallet/earnings-by-month
-// @access  Private (Student only)
+// @access  Private (student typically)
 const getEarningsByMonth = async (req, res, next) => {
   try {
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    const userId = req.user.id;
 
+    // We only aggregate MILESTONE_CREDIT transactions to determine earnings
     const earnings = await WalletTransaction.aggregate([
       {
         $match: {
-          userId: req.user._id,
-          type: 'CREDIT',
-          createdAt: { $gte: sixMonthsAgo },
+          userId: new mongoose.Types.ObjectId(userId),
+          type: 'MILESTONE_CREDIT',
+          status: 'completed',
         },
       },
       {
@@ -211,7 +212,7 @@ const getEarningsByMonth = async (req, res, next) => {
             year: { $year: '$createdAt' },
             month: { $month: '$createdAt' },
           },
-          totalEarned: { $sum: '$amount' },
+          totalEarnings: { $sum: '$amount' },
         },
       },
       {
@@ -219,9 +220,27 @@ const getEarningsByMonth = async (req, res, next) => {
       },
     ]);
 
+    // Format output for Recharts: { month: "Jan", amount: 500 }
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    
+    const formattedData = earnings.map((item) => ({
+      month: `${monthNames[item._id.month - 1]} ${item._id.year}`,
+      amount: item.totalEarnings,
+    }));
+
+    // If no earnings, provide an empty skeleton or base case so the chart renders properly
+    if (formattedData.length === 0) {
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      formattedData.push({
+        month: `${monthNames[currentMonth]} ${currentYear}`,
+        amount: 0,
+      });
+    }
+
     res.status(200).json({
       success: true,
-      data: earnings,
+      data: formattedData,
     });
   } catch (error) {
     next(error);

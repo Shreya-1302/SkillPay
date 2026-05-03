@@ -6,12 +6,15 @@ const {
   login,
   refreshToken,
   forgotPassword,
+  getMe,
 } = require('../controllers/auth.controller');
+const { protect } = require('../middleware/auth.middleware');
 
 router.post('/register', register);
 router.post('/login', login);
 router.get('/verify-email/:otp', verifyEmail);
 router.post('/refresh', refreshToken);
 router.post('/forgot-password', forgotPassword);
+router.get('/me', protect, getMe);
 
 module.exports = router;

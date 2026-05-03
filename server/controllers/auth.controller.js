@@ -49,7 +49,16 @@ const register = async (req, res, next) => {
     `;
 
     try {
-      await sendEmail(user.email, 'Verify your Email Address', message);
+      if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+        await sendEmail(user.email, 'Verify your Email Address', message);
+      } else {
+        // Dev mode: auto-verify and log OTP to console
+        user.emailVerified = true;
+        user.otp = undefined;
+        user.otpExpiry = undefined;
+        await user.save({ validateBeforeSave: false });
+        console.log(`[DEV MODE] Auto-verified ${user.email}. OTP was: ${otp}`);
+      }
       res.status(201).json({
         success: true,
         message: 'Registration successful. Please check your email for OTP.',
@@ -218,10 +227,33 @@ const forgotPassword = async (req, res, next) => {
   }
 };
 
+// @desc    Get current logged-in user (fresh from DB, includes live wallet balance)
+// @route   GET /api/auth/me
+// @access  Private
+const getMe = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id).select('-passwordHash -otp -otpExpiry');
+    if (!user) return next(new ApiError(404, 'User not found'));
+    res.status(200).json({
+      success: true,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        walletBalance: user.walletBalance,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   verifyEmail,
   login,
   refreshToken,
   forgotPassword,
+  getMe,
 };

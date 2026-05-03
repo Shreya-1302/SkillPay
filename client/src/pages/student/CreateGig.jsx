@@ -78,9 +78,9 @@ const CreateGig = () => {
     data.append('deliveryDays', formData.deliveryDays);
     data.append('revisions', formData.revisions);
     
-    // Convert skills string to array
-    const skillsArray = formData.skills.split(',').map(s => s.trim()).filter(s => s);
-    data.append('skills', JSON.stringify(skillsArray));
+    // Convert skills string to array and send as 'tags' (backend field name)
+    const tagsArray = formData.skills.split(',').map(s => s.trim()).filter(s => s);
+    data.append('tags', JSON.stringify(tagsArray));
 
     images.forEach(img => {
       data.append('images', img);
