@@ -35,7 +35,13 @@ app.use(cookieParser());
 
 // Mount Routes
 app.use('/api/auth', require('./routes/auth.routes'));
-// Optional: app.use('/api/gigs', require('./routes/gig.routes')); // Un-comment when gigs route is ready
+app.use('/api/gigs', require('./routes/gig.routes'));
+app.use('/api/orders', require('./routes/order.routes'));
+app.use('/api/wallet', require('./routes/wallet.routes'));
+app.use('/api/webhooks', require('./routes/webhook.routes'));
+app.use('/api/notifications', require('./routes/notification.routes'));
+app.use('/api/admin', require('./routes/admin.routes'));
+app.use('/api/reviews', require('./routes/review.routes'));
 
 // Global Error Handler (must be after routes)
 app.use(errorHandler);
@@ -44,6 +50,11 @@ app.use(errorHandler);
 io.on('connection', (socket) => {
   console.log(`Socket connected: ${socket.id}`);
   
+  socket.on('join', (userId) => {
+    socket.join(userId);
+    console.log(`Socket ${socket.id} joined room ${userId}`);
+  });
+
   socket.on('disconnect', () => {
     console.log(`Socket disconnected: ${socket.id}`);
   });

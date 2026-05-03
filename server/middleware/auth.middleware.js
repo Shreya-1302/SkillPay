@@ -1,7 +1,9 @@
 const jwt = require('jsonwebtoken');
 const ApiError = require('../utils/ApiError');
 
-const protect = (req, res, next) => {
+const User = require('../models/User');
+
+const protect = async (req, res, next) => {
   let token;
 
   if (
@@ -17,11 +19,30 @@ const protect = (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded; // attach decoded payload
+    
+    // Check if user still exists and is not banned
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return next(new ApiError(401, 'User no longer exists'));
+    }
+    if (user.isBanned) {
+      return next(new ApiError(403, 'Account suspended'));
+    }
+
+    req.user = user; // attach full user document
     next();
   } catch (err) {
     return next(new ApiError(401, 'Not authorized to access this route'));
   }
 };
 
-module.exports = { protect };
+const authorize = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return next(new ApiError(403, `User role ${req.user ? req.user.role : 'undefined'} is not authorized`));
+    }
+    next();
+  };
+};
+
+module.exports = { protect, authorize };

@@ -10,11 +10,17 @@ import { useAuth } from '../hooks/useAuth';
 import Navbar from '../components/Navbar';
 import Spinner from '../components/ui/Spinner';
 import Badge from '../components/ui/Badge';
+import { useNavigate } from 'react-router-dom';
+import Modal from '../components/ui/Modal';
+import RazorpayCheckout from '../components/RazorpayCheckout';
 
 const GigDetail = () => {
   const { id } = useParams();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [activeImage, setActiveImage] = useState(0);
+  const [isHireModalOpen, setIsHireModalOpen] = useState(false);
+  const [requirements, setRequirements] = useState('');
 
   const { data: gig, isLoading, isError } = useQuery({
     queryKey: ['gig', id],
@@ -165,12 +171,12 @@ const GigDetail = () => {
                 </div>
 
                 {!isOwner ? (
-                  <Link 
-                    to={`/hire/${gig._id}`}
+                  <button 
+                    onClick={() => setIsHireModalOpen(true)}
                     className="flex w-full justify-center items-center gap-2 bg-primary text-primary-foreground py-3 rounded-full font-bold hover:bg-primary/90 transition-colors shadow-md hover:shadow-lg"
                   >
                     Continue to Hire
-                  </Link>
+                  </button>
                 ) : (
                   <Link 
                     to={`/student/edit-gig/${gig._id}`}
@@ -212,6 +218,34 @@ const GigDetail = () => {
           </aside>
         </div>
       </main>
+
+      <Modal
+        isOpen={isHireModalOpen}
+        onClose={() => setIsHireModalOpen(false)}
+        title={`Hire for: ${gig.title}`}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Project Requirements</label>
+            <textarea
+              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 min-h-[120px]"
+              placeholder="Describe what you need the freelancer to do in detail..."
+              value={requirements}
+              onChange={(e) => setRequirements(e.target.value)}
+            />
+          </div>
+          <RazorpayCheckout
+            gigId={gig._id}
+            gigTitle={gig.title}
+            amount={gig.basePrice}
+            requirements={requirements}
+            onSuccess={(orderId) => {
+              setIsHireModalOpen(false);
+              navigate(`/orders/${orderId}`);
+            }}
+          />
+        </div>
+      </Modal>
     </div>
   );
 };

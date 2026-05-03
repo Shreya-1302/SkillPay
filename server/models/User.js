@@ -38,7 +38,7 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'admin', 'freelancer'],
+      enum: ['user', 'admin', 'freelancer', 'client', 'student'],
       default: 'user',
     },
     walletBalance: {
@@ -56,6 +56,14 @@ const userSchema = new mongoose.Schema(
     },
     razorpayFundAccId: {
       type: String,
+    },
+    isBanned: {
+      type: Boolean,
+      default: false,
+    },
+    totalReviews: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true }

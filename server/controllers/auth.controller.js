@@ -11,7 +11,11 @@ const { signAccessToken, signRefreshToken } = require('../utils/generateToken');
 // @access  Public
 const register = async (req, res, next) => {
   try {
-    const { name, email, collegeEmail, password, role } = req.body;
+    let { name, email, collegeEmail, password, role } = req.body;
+    
+    if (!collegeEmail || collegeEmail.trim() === '') {
+      collegeEmail = undefined;
+    }
 
     // Check if user already exists
     const userExists = await User.findOne({ email });

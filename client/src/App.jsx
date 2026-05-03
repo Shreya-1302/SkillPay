@@ -11,11 +11,15 @@ import GigDetail from './pages/GigDetail';
 import CreateGig from './pages/student/CreateGig';
 import EditGig from './pages/student/EditGig';
 import MyGigs from './pages/student/MyGigs';
+import Wallet from './pages/student/Wallet';
+
+import ClientDashboard from './pages/client/ClientDashboard';
+import MyHires from './pages/client/MyHires';
+import OrderDetail from './pages/client/OrderDetail';
 
 // Mock dashboard components for demonstration
 const AdminDashboard = () => <div className="p-8"><h1 className="text-2xl font-bold">Admin Dashboard</h1></div>;
 const StudentDashboard = () => <div className="p-8"><h1 className="text-2xl font-bold">Student Dashboard</h1></div>;
-const ClientDashboard = () => <div className="p-8"><h1 className="text-2xl font-bold">Client Dashboard</h1></div>;
 const Unauthorized = () => <div className="p-8 text-center text-destructive"><h1 className="text-2xl font-bold">403 - Unauthorized</h1></div>;
 
 function App() {
@@ -36,6 +40,8 @@ function App() {
       <Route element={<ProtectedRoute />}>
         {/* Client routes */}
         <Route path="/dashboard" element={<ClientDashboard />} />
+        <Route path="/client/my-hires" element={<MyHires />} />
+        <Route path="/orders/:id" element={<OrderDetail />} />
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={['student']} />}>
@@ -43,6 +49,7 @@ function App() {
         <Route path="/student/create-gig" element={<CreateGig />} />
         <Route path="/student/edit-gig/:id" element={<EditGig />} />
         <Route path="/student/my-gigs" element={<MyGigs />} />
+        <Route path="/student/wallet" element={<Wallet />} />
       </Route>
 
       <Route element={<ProtectedRoute allowedRoles={['admin']} />}>

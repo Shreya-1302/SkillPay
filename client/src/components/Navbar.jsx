@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, Bell, Menu, X, User, LogOut } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import useSocket from '../hooks/useSocket';
+import NotificationBell from './NotificationBell';
 
 const Navbar = () => {
   const { user, clearAuth } = useAuth();
+  useSocket(); // Initialize socket connection globally
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -66,10 +69,7 @@ const Navbar = () => {
                   </Link>
                 )}
                 
-                <button className="relative p-2 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-secondary/50">
-                  <Bell className="h-5 w-5" />
-                  <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive"></span>
-                </button>
+                <NotificationBell />
 
                 <div className="relative">
                   <button 
@@ -96,9 +96,14 @@ const Navbar = () => {
                         <User className="h-4 w-4" /> Profile
                       </Link>
                       {user.role === 'student' && (
-                        <Link to="/student/my-gigs" className="block px-4 py-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground" onClick={() => setIsProfileOpen(false)}>
-                          My Gigs
-                        </Link>
+                        <>
+                          <Link to="/student/my-gigs" className="block px-4 py-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground" onClick={() => setIsProfileOpen(false)}>
+                            My Gigs
+                          </Link>
+                          <Link to="/student/wallet" className="block px-4 py-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground" onClick={() => setIsProfileOpen(false)}>
+                            Wallet
+                          </Link>
+                        </>
                       )}
                       <button 
                         onClick={handleLogout}
@@ -151,7 +156,10 @@ const Navbar = () => {
               <>
                 <Link to="/profile" onClick={() => setIsMenuOpen(false)} className="px-2 py-2 text-sm font-medium text-foreground">Profile</Link>
                 {user.role === 'student' && (
-                  <Link to="/student/my-gigs" onClick={() => setIsMenuOpen(false)} className="px-2 py-2 text-sm font-medium text-foreground">My Gigs</Link>
+                  <>
+                    <Link to="/student/my-gigs" onClick={() => setIsMenuOpen(false)} className="px-2 py-2 text-sm font-medium text-foreground">My Gigs</Link>
+                    <Link to="/student/wallet" onClick={() => setIsMenuOpen(false)} className="px-2 py-2 text-sm font-medium text-foreground">Wallet</Link>
+                  </>
                 )}
                 <button onClick={handleLogout} className="text-left px-2 py-2 text-sm font-medium text-destructive">Logout</button>
               </>
