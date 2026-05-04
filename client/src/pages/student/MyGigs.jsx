@@ -6,11 +6,14 @@ import toast from 'react-hot-toast';
 import { getMyGigs, deleteGig, updateGig } from '../../api/gig.api';
 import { formatINR } from '../../utils/formatCurrency';
 import Navbar from '../../components/Navbar';
-import Spinner from '../../components/ui/Spinner';
+import Skeleton from '../../components/ui/Skeleton';
 import Badge from '../../components/ui/Badge';
+import Modal from '../../components/ui/Modal';
 
 const MyGigs = () => {
   const queryClient = useQueryClient();
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [gigToDelete, setGigToDelete] = useState(null);
 
   const { data: gigs, isLoading } = useQuery({
     queryKey: ['myGigs'],
@@ -39,9 +42,16 @@ const MyGigs = () => {
     onError: () => toast.error('Failed to update status')
   });
 
-  const handleDelete = (id) => {
-    if (window.confirm('Are you sure you want to delete this service? This action cannot be undone.')) {
-      removeGig(id);
+  const handleDeleteClick = (id) => {
+    setGigToDelete(id);
+    setDeleteModalOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (gigToDelete) {
+      removeGig(gigToDelete);
+      setDeleteModalOpen(false);
+      setGigToDelete(null);
     }
   };
 
@@ -65,7 +75,7 @@ const MyGigs = () => {
         </div>
 
         {isLoading ? (
-          <div className="py-20 flex justify-center"><Spinner size={40} /></div>
+          <div className="py-20"><Skeleton className="h-64 w-full" /></div>
         ) : !gigs || gigs.length === 0 ? (
           <div className="bg-card border border-border/50 rounded-2xl p-12 text-center shadow-sm">
             <h3 className="text-xl font-bold mb-2">No Gigs Yet</h3>
@@ -88,6 +98,7 @@ const MyGigs = () => {
                   <tr className="bg-secondary/50 border-b border-border/50 text-muted-foreground text-sm uppercase tracking-wider">
                     <th className="p-4 font-medium">Gig Details</th>
                     <th className="p-4 font-medium">Price</th>
+                    <th className="p-4 font-medium text-center">Orders</th>
                     <th className="p-4 font-medium">Rating</th>
                     <th className="p-4 font-medium">Status</th>
                     <th className="p-4 font-medium text-right">Actions</th>
@@ -110,10 +121,15 @@ const MyGigs = () => {
                         </div>
                       </td>
                       <td className="p-4 font-medium text-foreground">{formatINR(gig.basePrice)}</td>
+                      <td className="p-4 text-center font-semibold">{gig.totalOrders || 0}</td>
                       <td className="p-4">
-                        <div className="flex items-center gap-1 text-yellow-500 font-medium">
-                          ★ {gig.avgRating > 0 ? gig.avgRating : 'N/A'}
-                        </div>
+                        {gig.avgRating > 0 ? (
+                          <div className="flex items-center gap-1 text-yellow-500 font-medium">
+                            ★ {gig.avgRating}
+                          </div>
+                        ) : (
+                          <Badge variant="success" className="bg-green-500/10 text-green-500 border-green-500/20 px-2 py-0.5 text-xs">New</Badge>
+                        )}
                       </td>
                       <td className="p-4">
                         {gig.status === 'active' ? (
@@ -141,14 +157,14 @@ const MyGigs = () => {
                           <button 
                             onClick={() => toggleStatus({ id: gig._id, status: gig.status === 'active' ? 'paused' : 'active' })}
                             className="p-2 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-lg transition-colors"
-                            title={gig.status === 'active' ? 'Pause Gig' : 'Activate Gig'}
+                            title={gig.status === 'active' ? 'Pause this gig' : 'Resume this gig'}
                           >
                             {gig.status === 'active' ? <PauseCircle size={18} /> : <PlayCircle size={18} />}
                           </button>
                           <button 
-                            onClick={() => handleDelete(gig._id)}
+                            onClick={() => handleDeleteClick(gig._id)}
                             className="p-2 text-destructive hover:bg-destructive/10 rounded-lg transition-colors"
-                            title="Delete"
+                            title="Delete this gig"
                           >
                             <Trash2 size={18} />
                           </button>
@@ -162,6 +178,26 @@ const MyGigs = () => {
           </div>
         )}
       </main>
+
+      <Modal isOpen={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} title="Confirm Deletion">
+        <div className="space-y-4">
+          <p className="text-muted-foreground text-sm">Are you sure? This cannot be undone. All data related to this gig will be permanently deleted.</p>
+          <div className="flex gap-3 justify-end pt-4">
+            <button 
+              onClick={() => setDeleteModalOpen(false)} 
+              className="px-4 py-2 border border-border rounded-lg text-sm font-medium hover:bg-secondary/50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button 
+              onClick={confirmDelete} 
+              className="px-4 py-2 bg-destructive text-destructive-foreground rounded-lg text-sm font-medium hover:bg-destructive/90 transition-colors shadow-sm"
+            >
+              Delete Service
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

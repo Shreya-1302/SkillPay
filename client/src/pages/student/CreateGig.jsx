@@ -23,6 +23,18 @@ const CreateGig = () => {
   
   const [images, setImages] = useState([]); // File objects
   const [previews, setPreviews] = useState([]); // Blob URLs for preview
+  const [errors, setErrors] = useState({});
+
+  const validate = () => {
+    const newErrors = {};
+    if (!formData.title.trim()) newErrors.title = 'Title is required';
+    if (!formData.description.trim()) newErrors.description = 'Description is required';
+    if (!formData.price || Number(formData.price) < 50) newErrors.price = 'Price must be at least ₹50';
+    if (!formData.deliveryDays || Number(formData.deliveryDays) < 1) newErrors.deliveryDays = 'Delivery days must be at least 1';
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const { mutate: submitGig, isLoading } = useMutation({
     mutationFn: createGig,
@@ -39,6 +51,8 @@ const CreateGig = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear error on change
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
   };
 
   const handleImageChange = (e) => {
@@ -64,9 +78,10 @@ const CreateGig = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // Validate
-    if (!formData.title || !formData.description || !formData.price || !formData.deliveryDays) {
-      toast.error('Please fill in all required fields');
+    if (!validate()) return;
+    
+    if (images.length === 0) {
+      toast.error('Please upload at least one image');
       return;
     }
     
@@ -78,9 +93,8 @@ const CreateGig = () => {
     data.append('deliveryDays', formData.deliveryDays);
     data.append('revisions', formData.revisions);
     
-    // Convert skills string to array and send as 'tags' (backend field name)
-    const tagsArray = formData.skills.split(',').map(s => s.trim()).filter(s => s);
-    data.append('tags', JSON.stringify(tagsArray));
+    // Send raw comma separated string to backend so it can be parsed cleanly
+    data.append('tags', formData.skills);
 
     images.forEach(img => {
       data.append('images', img);
@@ -113,10 +127,13 @@ const CreateGig = () => {
                 value={formData.title}
                 onChange={handleChange}
                 placeholder="I will build a responsive website..."
-                className="w-full bg-background border border-input rounded-md px-4 py-3 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                className={`w-full bg-background border ${errors.title ? 'border-destructive' : 'border-input'} rounded-md px-4 py-3 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all`}
                 maxLength={80}
               />
-              <p className="text-xs text-muted-foreground mt-1 text-right">{formData.title.length}/80 max</p>
+              <div className="flex justify-between items-center mt-1">
+                <span className="text-xs text-destructive">{errors.title}</span>
+                <span className="text-xs text-muted-foreground">{formData.title.length}/80 max</span>
+              </div>
             </div>
 
             <div>
@@ -139,8 +156,9 @@ const CreateGig = () => {
                 onChange={handleChange}
                 placeholder="Describe what you will do, the tools you use, and why clients should choose you..."
                 rows={6}
-                className="w-full bg-background border border-input rounded-md px-4 py-3 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all resize-y"
+                className={`w-full bg-background border ${errors.description ? 'border-destructive' : 'border-input'} rounded-md px-4 py-3 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all resize-y`}
               />
+              {errors.description && <p className="text-xs text-destructive mt-1">{errors.description}</p>}
             </div>
             
             <div>
@@ -171,10 +189,11 @@ const CreateGig = () => {
                     value={formData.price}
                     onChange={handleChange}
                     placeholder="1000"
-                    min="100"
-                    className="w-full bg-background border border-input rounded-md pl-10 pr-4 py-3 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                    min="50"
+                    className={`w-full bg-background border ${errors.price ? 'border-destructive' : 'border-input'} rounded-md pl-10 pr-4 py-3 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all`}
                   />
                 </div>
+                {errors.price && <p className="text-xs text-destructive mt-1">{errors.price}</p>}
               </div>
 
               <div>
@@ -187,8 +206,9 @@ const CreateGig = () => {
                   placeholder="3"
                   min="1"
                   max="30"
-                  className="w-full bg-background border border-input rounded-md px-4 py-3 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all"
+                  className={`w-full bg-background border ${errors.deliveryDays ? 'border-destructive' : 'border-input'} rounded-md px-4 py-3 focus:ring-2 focus:ring-primary/50 focus:border-primary transition-all`}
                 />
+                {errors.deliveryDays && <p className="text-xs text-destructive mt-1">{errors.deliveryDays}</p>}
               </div>
 
               <div>
@@ -230,10 +250,11 @@ const CreateGig = () => {
                 </div>
               ))}
               
-              {previews.length < 5 && (
-                <label className="aspect-video rounded-lg border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary">
+              {/* Remaining Empty Slots */}
+              {[...Array(Math.max(0, 5 - previews.length))].map((_, idx) => (
+                <label key={`empty-${idx}`} className="aspect-video rounded-lg border-2 border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary">
                   <ImagePlus size={24} />
-                  <span className="text-xs font-medium">Add Image</span>
+                  <span className="text-xs font-medium">{previews.length === 0 && idx === 0 ? 'Add Thumbnail' : 'Add Image'}</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -242,7 +263,7 @@ const CreateGig = () => {
                     className="hidden"
                   />
                 </label>
-              )}
+              ))}
             </div>
           </section>
 

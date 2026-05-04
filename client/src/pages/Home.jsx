@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ArrowRight, Zap, Shield, Sparkles } from 'lucide-react';
+import { Search, ArrowRight, Zap, Shield, Sparkles, Code, Paintbrush, PenTool, Video, Music, Briefcase, PlusCircle, UserCheck, CreditCard, Users, ShieldCheck, GraduationCap } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getGigs } from '../api/gig.api';
-import { CATEGORIES } from '../utils/constants';
+import { getGigs, getPopularTags } from '../api/gig.api';
 import GigCard from '../components/GigCard';
-import Spinner from '../components/ui/Spinner';
+import Skeleton from '../components/ui/Skeleton';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -15,8 +15,22 @@ const Home = () => {
 
   const { data: gigsData, isLoading } = useQuery({
     queryKey: ['featuredGigs'],
-    queryFn: () => getGigs({ limit: 8 }),
+    queryFn: () => getGigs({ limit: 4, sort: 'rating_desc' }),
   });
+
+  const { data: popularTags } = useQuery({
+    queryKey: ['popularTags'],
+    queryFn: getPopularTags,
+  });
+
+  const visualCategories = [
+    { name: 'Programming & Tech', icon: Code },
+    { name: 'Graphics & Design', icon: Paintbrush },
+    { name: 'Writing & Translation', icon: PenTool },
+    { name: 'Video & Animation', icon: Video },
+    { name: 'Music & Audio', icon: Music },
+    { name: 'Business', icon: Briefcase },
+  ];
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -79,8 +93,8 @@ const Home = () => {
                 className="mt-8 flex flex-wrap items-center gap-2"
               >
                 <span className="text-sm font-medium text-muted-foreground mr-2">Popular:</span>
-                {['Web Development', 'UI/UX Design', 'Data Science'].map(cat => (
-                  <Link key={cat} to={`/gigs?category=${encodeURIComponent(cat)}`} className="text-xs px-3 py-1.5 rounded-full border border-border bg-secondary/50 hover:bg-secondary text-secondary-foreground transition-colors">
+                {popularTags?.map(cat => (
+                  <Link key={cat} to={`/gigs?search=${encodeURIComponent(cat)}`} className="text-xs px-3 py-1.5 rounded-full border border-border bg-secondary/50 hover:bg-secondary text-secondary-foreground transition-colors">
                     {cat}
                   </Link>
                 ))}
@@ -89,27 +103,81 @@ const Home = () => {
           </div>
         </section>
 
+        {/* Trust Stats Bar */}
+        <section className="border-y border-border/50 bg-card/30">
+          <div className="container mx-auto px-4 py-6">
+            <div className="flex flex-wrap justify-between items-center gap-6">
+              <div className="flex items-center gap-3">
+                <Users className="h-6 w-6 text-primary" />
+                <span className="font-medium text-muted-foreground">500+ Active Students</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="h-6 w-6 text-primary" />
+                <span className="font-medium text-muted-foreground">Secure Escrow Payments</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <GraduationCap className="h-6 w-6 text-primary" />
+                <span className="font-medium text-muted-foreground">College Verified Talent</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* How It Works */}
+        <section className="py-16">
+          <div className="container mx-auto px-4 text-center">
+            <h2 className="text-2xl font-bold mb-10">How it works</h2>
+            <div className="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
+                  <PlusCircle className="h-8 w-8" />
+                </div>
+                <h3 className="font-bold mb-2">1. Post a gig or Search</h3>
+                <p className="text-sm text-muted-foreground">Find exactly what you need or post your requirements.</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
+                  <UserCheck className="h-8 w-8" />
+                </div>
+                <h3 className="font-bold mb-2">2. Hire</h3>
+                <p className="text-sm text-muted-foreground">Review portfolios, compare prices, and hire the best fit.</p>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary mb-4">
+                  <CreditCard className="h-8 w-8" />
+                </div>
+                <h3 className="font-bold mb-2">3. Pay Safely</h3>
+                <p className="text-sm text-muted-foreground">Payment is held in escrow until you approve the work.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Categories Section */}
         <section className="py-16 bg-card/30">
           <div className="container mx-auto px-4">
             <h2 className="text-2xl font-bold mb-8">Browse by Category</h2>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {CATEGORIES.map((category, index) => (
-                <motion.div
-                  key={category}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <Link 
-                    to={`/gigs?category=${encodeURIComponent(category)}`}
-                    className="block p-6 rounded-2xl bg-card border border-border/50 hover:border-primary/50 hover:shadow-md transition-all group text-center"
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {visualCategories.map((cat, index) => {
+                const Icon = cat.icon;
+                return (
+                  <motion.div
+                    key={cat.name}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.05 }}
                   >
-                    <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">{category}</h3>
-                  </Link>
-                </motion.div>
-              ))}
+                    <Link 
+                      to={`/gigs?category=${encodeURIComponent(cat.name)}`}
+                      className="flex flex-col items-center justify-center gap-3 p-6 rounded-2xl bg-card border border-border/50 hover:border-primary/50 hover:shadow-md transition-all group text-center h-full"
+                    >
+                      <Icon className="h-8 w-8 text-muted-foreground group-hover:text-primary transition-colors" />
+                      <h3 className="font-medium text-sm text-foreground group-hover:text-primary transition-colors">{cat.name}</h3>
+                    </Link>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -125,7 +193,9 @@ const Home = () => {
             </div>
 
             {isLoading ? (
-              <Spinner size={40} className="py-20" />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-80 w-full" />)}
+              </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {gigsData?.gigs?.map((gig, idx) => (
@@ -179,9 +249,7 @@ const Home = () => {
         </section>
       </main>
       
-      <footer className="border-t border-border py-8 text-center text-muted-foreground">
-        <p>© 2026 SkillPay. All rights reserved.</p>
-      </footer>
+      <Footer />
     </div>
   );
 };

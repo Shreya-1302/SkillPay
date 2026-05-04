@@ -7,13 +7,17 @@ const createGig = async (req, res, next) => {
     const { title, description, category, basePrice, deliveryDays, tags } = req.body;
 
     // Handle tags if they come as a comma-separated string (e.g. from FormData)
-    let parsedTags = tags;
+    let parsedTags = [];
     if (typeof tags === 'string') {
-        try {
-            parsedTags = JSON.parse(tags);
-        } catch(e) {
-            parsedTags = tags.split(',').map(tag => tag.trim());
-        }
+      try {
+        const parsed = JSON.parse(tags);
+        if (Array.isArray(parsed)) parsedTags = parsed;
+        else parsedTags = tags.split(',').map(tag => tag.trim()).filter(t => t);
+      } catch (e) {
+        parsedTags = tags.split(',').map(tag => tag.trim()).filter(t => t);
+      }
+    } else if (Array.isArray(tags)) {
+      parsedTags = tags;
     }
 
     // Upload images to Cloudinary in parallel
@@ -227,11 +231,27 @@ const getMyGigs = async (req, res, next) => {
   }
 };
 
+const getPopularTags = async (req, res, next) => {
+  try {
+    const tags = await Gig.aggregate([
+      { $match: { status: 'active' } },
+      { $unwind: '$tags' },
+      { $group: { _id: '$tags', count: { $sum: 1 } } },
+      { $sort: { count: -1 } },
+      { $limit: 5 }
+    ]);
+    res.status(200).json({ success: true, data: tags.map(t => t._id) });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createGig,
   getGigs,
   getGigById,
   updateGig,
   deleteGig,
-  getMyGigs
+  getMyGigs,
+  getPopularTags
 };

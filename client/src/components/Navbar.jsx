@@ -9,9 +9,14 @@ const Navbar = () => {
   const { user, clearAuth } = useAuth();
   useSocket(); // Initialize socket connection globally
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = useState('');
+  const searchParams = new URLSearchParams(window.location.search);
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  React.useEffect(() => {
+    setSearchQuery(searchParams.get('search') || '');
+  }, [window.location.search]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -52,6 +57,9 @@ const Navbar = () => {
           </div>
 
           <div className="hidden md:flex items-center gap-6">
+            <Link to="/" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+              Home
+            </Link>
             <Link to="/gigs" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Explore
             </Link>
@@ -150,6 +158,7 @@ const Navbar = () => {
           </form>
           
           <div className="flex flex-col space-y-2">
+            <Link to="/" onClick={() => setIsMenuOpen(false)} className="px-2 py-2 text-sm font-medium text-foreground">Home</Link>
             <Link to="/gigs" onClick={() => setIsMenuOpen(false)} className="px-2 py-2 text-sm font-medium text-foreground">Explore</Link>
             
             {user ? (

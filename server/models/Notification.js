@@ -13,7 +13,7 @@ const notificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['milestone_approved', 'milestone_submitted', 'payout_done', 'payout_failed', 'dispute_raised'],
+      enum: ['milestone_approved', 'milestone_submitted', 'revision_requested', 'payout_done', 'payout_failed', 'dispute_raised', 'dispute_resolved', 'order_placed'],
       required: true,
     },
     read: {

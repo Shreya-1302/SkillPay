@@ -21,5 +21,6 @@ const upload = multer({
 });
 
 const uploadImages = upload.array('images', 5);
+const uploadAvatar = upload.single('avatar');
 
-module.exports = { uploadImages };
+module.exports = { uploadImages, uploadAvatar };

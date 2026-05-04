@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const Order = require('../models/Order');
 const Gig = require('../models/Gig');
 const ApiError = require('../utils/ApiError');
+const { scheduleDeadlineJob } = require('../jobs/orderDeadline.job');
 
 const razorpay = new Razorpay({
   key_id: process.env.VITE_RAZORPAY_KEY_ID || 'test',
@@ -42,15 +43,20 @@ const createOrder = async (req, res, next) => {
       rzpOrder = { id: `fake_rzp_${Date.now()}`, amount: amountInPaise, currency: 'INR' };
     }
 
+    // Calculate deadline based on gig deliveryDays
+    const deadline = new Date();
+    deadline.setDate(deadline.getDate() + gig.deliveryDays);
+
     // Save order in DB as pending
     const order = await Order.create({
       gig: gig._id,
       client: req.user.id,
-      student: gig.student,
+      student: gig.studentId,   // ← was gig.student (undefined); correct field is studentId
       amount: gig.basePrice,
       requirements,
       status: 'pending_payment',
       razorpayOrderId: rzpOrder.id,
+      deadline,
     });
 
     res.status(201).json({
@@ -94,6 +100,9 @@ const verifyPayment = async (req, res, next) => {
     order.razorpaySignature = razorpaySignature;
     order.status = 'in_escrow';
     await order.save();
+
+    // Schedule auto-cancel deadline job
+    scheduleDeadlineJob(order._id.toString(), order.deadline);
 
     res.status(200).json({
       success: true,

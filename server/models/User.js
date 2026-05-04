@@ -61,9 +61,20 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    avatar: {
+      type: String,
+      default: '',
+    },
     totalReviews: {
       type: Number,
       default: 0,
+    },
+    bio: {
+      type: String,
+      maxlength: 500,
+    },
+    skills: {
+      type: [String],
     },
   },
   { timestamps: true }

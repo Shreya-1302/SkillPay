@@ -3,9 +3,11 @@ const {
   getAllUsers,
   banUser,
   getAllOrders,
+  getOrdersByMonth,
   getDisputedOrders,
   resolveDispute,
   getPlatformStats,
+  adminUpdateGigStatus,
 } = require('../controllers/admin.controller');
 const { protect, authorize } = require('../middleware/auth.middleware');
 
@@ -21,14 +23,21 @@ router.route('/users')
 router.route('/users/:id/ban')
   .patch(banUser);
 
-router.route('/orders')
-  .get(getAllOrders);
-
+// NOTE: /orders/disputes and /orders/by-month must come BEFORE /orders/:id
 router.route('/orders/disputes')
   .get(getDisputedOrders);
 
+router.route('/orders/by-month')
+  .get(getOrdersByMonth);
+
+router.route('/orders')
+  .get(getAllOrders);
+
 router.route('/orders/:id/resolve')
   .patch(resolveDispute);
+
+router.route('/gigs/:id/status')
+  .patch(adminUpdateGigStatus);
 
 router.route('/stats')
   .get(getPlatformStats);

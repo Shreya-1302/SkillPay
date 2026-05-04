@@ -15,8 +15,23 @@ export const login = async (data) => {
   return response.data;
 };
 
+export const forgotPassword = async (email) => {
+  const response = await api.post('/auth/forgot-password', { email });
+  return response.data;
+};
+
+export const resetPassword = async (otp, newPassword) => {
+  const response = await api.post('/auth/reset-password', { otp, newPassword });
+  return response.data;
+};
+
 // Fetch fresh user profile (includes live wallet balance)
 export const getMe = async () => {
   const response = await api.get('/auth/me');
+  return response.data.user;
+};
+
+export const updateProfile = async (data) => {
+  const response = await api.patch('/auth/me', data);
   return response.data.user;
 };

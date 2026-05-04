@@ -37,3 +37,8 @@ export const getMyGigs = async () => {
   const { data } = await api.get('/gigs/my/list');
   return data.data;
 };
+
+export const getPopularTags = async () => {
+  const { data } = await api.get('/gigs/popular-tags');
+  return data.data;
+};

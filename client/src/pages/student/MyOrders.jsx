@@ -10,7 +10,7 @@ import { formatINR } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import { useAuth } from '../../hooks/useAuth';
 import Navbar from '../../components/Navbar';
-import Spinner from '../../components/ui/Spinner';
+import Skeleton from '../../components/ui/Skeleton';
 import Badge from '../../components/ui/Badge';
 
 // ─── Status config ─────────────────────────────────────────────────────────────
@@ -125,7 +125,7 @@ const MyOrders = () => {
           </div>
 
           {isLoading ? (
-            <div className="p-12 flex justify-center"><Spinner size={40} /></div>
+            <div className="p-6"><Skeleton className="h-64 w-full" /></div>
           ) : !orders?.length ? (
             <div className="p-12 text-center">
               <PackageCheck className="h-12 w-12 text-muted-foreground mx-auto mb-4 opacity-40" />

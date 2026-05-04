@@ -1,15 +1,17 @@
 const User = require('../models/User');
 const Order = require('../models/Order');
 const Gig = require('../models/Gig');
+const WalletTransaction = require('../models/WalletTransaction');
 const Razorpay = require('razorpay');
 const ApiError = require('../utils/ApiError');
+const mongoose = require('mongoose');
 
 const razorpay = new Razorpay({
   key_id: process.env.VITE_RAZORPAY_KEY_ID || 'test',
   key_secret: process.env.RAZORPAY_KEY_SECRET || 'test_secret',
 });
 
-// @desc    Get all users (paginated, filter by role)
+// @desc    Get all users (paginated, filter by role, search by name/email)
 // @route   GET /api/admin/users
 // @access  Private (Admin)
 const getAllUsers = async (req, res, next) => {
@@ -21,6 +23,12 @@ const getAllUsers = async (req, res, next) => {
     let query = {};
     if (req.query.role) {
       query.role = req.query.role;
+    }
+
+    // ── Search by name or email (case-insensitive) ────────────────────────────
+    if (req.query.search) {
+      const regex = new RegExp(req.query.search, 'i');
+      query.$or = [{ name: regex }, { email: regex }];
     }
 
     const total = await User.countDocuments(query);
@@ -119,6 +127,42 @@ const getAllOrders = async (req, res, next) => {
   }
 };
 
+// @desc    Get orders grouped by month (last 6 months)
+// @route   GET /api/admin/orders/by-month
+// @access  Private (Admin)
+const getOrdersByMonth = async (req, res, next) => {
+  try {
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1);
+    sixMonthsAgo.setHours(0, 0, 0, 0);
+
+    const result = await Order.aggregate([
+      { $match: { createdAt: { $gte: sixMonthsAgo } } },
+      {
+        $group: {
+          _id: {
+            year: { $year: '$createdAt' },
+            month: { $month: '$createdAt' },
+          },
+          count: { $sum: 1 },
+        },
+      },
+      { $sort: { '_id.year': 1, '_id.month': 1 } },
+    ]);
+
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const formatted = result.map((r) => ({
+      month: `${monthNames[r._id.month - 1]} ${r._id.year}`,
+      count: r.count,
+    }));
+
+    res.status(200).json({ success: true, data: formatted });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Get all disputed orders
 // @route   GET /api/admin/orders/disputes
 // @access  Private (Admin)
@@ -147,7 +191,7 @@ const resolveDispute = async (req, res, next) => {
   try {
     const { winner } = req.body; // 'student' or 'client'
     const order = await Order.findById(req.params.id)
-      .populate('student', 'walletBalance')
+      .populate('student', 'walletBalance name email')
       .populate('client', 'name email');
 
     if (!order) {
@@ -160,10 +204,23 @@ const resolveDispute = async (req, res, next) => {
 
     if (winner === 'student') {
       // Release funds to student wallet
-      const studentUser = await User.findById(order.student._id);
-      studentUser.walletBalance += order.amount;
-      await studentUser.save();
-      
+      const studentUser = await User.findByIdAndUpdate(
+        order.student._id,
+        { $inc: { walletBalance: order.amount } },
+        { new: true, select: 'walletBalance' }
+      );
+
+      // ── Wallet ledger entry (was missing) ────────────────────────────────────
+      await WalletTransaction.create({
+        userId: order.student._id,
+        type: 'MILESTONE_CREDIT',
+        amount: order.amount,
+        balanceAfter: studentUser.walletBalance,
+        referenceId: order._id,
+        status: 'completed',
+        note: `Dispute resolved in favour of student for order #${order._id.toString().slice(-8)}`,
+      });
+
       order.status = 'completed';
     } else if (winner === 'client') {
       // Refund to client via Razorpay
@@ -174,7 +231,6 @@ const resolveDispute = async (req, res, next) => {
           });
         } catch (rzpErr) {
           console.error('Razorpay Refund Error:', rzpErr);
-          // If fake ID, just bypass it for dev
           if (!order.razorpayPaymentId.startsWith('fake_')) {
             return next(new ApiError(500, 'Failed to process Razorpay refund'));
           }
@@ -207,7 +263,6 @@ const getPlatformStats = async (req, res, next) => {
     const totalGigs = await Gig.countDocuments();
     const totalOrders = await Order.countDocuments();
 
-    // Calculate total revenue (assuming platform fee is 0 for now, or total money processed)
     const revenueAgg = await Order.aggregate([
       { $match: { status: 'completed' } },
       { $group: { _id: null, totalRevenue: { $sum: '$amount' } } },
@@ -228,11 +283,37 @@ const getPlatformStats = async (req, res, next) => {
   }
 };
 
+// @desc    Admin force-update a gig status (pause / restore / delete)
+// @route   PATCH /api/admin/gigs/:id/status
+// @access  Private (Admin)
+const adminUpdateGigStatus = async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    if (!['active', 'paused', 'deleted'].includes(status)) {
+      return next(new ApiError(400, 'Status must be active, paused, or deleted'));
+    }
+
+    const gig = await Gig.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true, runValidators: true }
+    );
+
+    if (!gig) return next(new ApiError(404, 'Gig not found'));
+
+    res.status(200).json({ success: true, data: gig });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   getAllUsers,
   banUser,
   getAllOrders,
+  getOrdersByMonth,
   getDisputedOrders,
   resolveDispute,
   getPlatformStats,
+  adminUpdateGigStatus,
 };

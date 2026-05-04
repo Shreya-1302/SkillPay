@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, CheckCheck, Trash2 } from 'lucide-react';
 import useNotificationStore from '../store/notificationStore';
-import { markAsRead } from '../api/notification.api';
+import { markAsRead, markAllRead, clearAll } from '../api/notification.api';
 
 const NotificationBell = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const { notifications, unreadCount, markRead } = useNotificationStore();
+  const { notifications, unreadCount, markRead, markAllRead: storeMarkAll, setNotifications } = useNotificationStore();
   const dropdownRef = useRef(null);
 
   useEffect(() => {
@@ -20,10 +20,10 @@ const NotificationBell = () => {
 
   const handleOpen = async () => {
     setIsOpen(!isOpen);
-    // Mark top notifications as read if they aren't
+    // Mark top notifications as read when opening
     if (!isOpen && unreadCount > 0) {
       notifications.forEach(async (notif) => {
-        if (!notif.read && notif._id.length > 15) { // Skip temporary frontend-only IDs
+        if (!notif.read && notif._id?.length > 15) {
           try {
             await markAsRead(notif._id);
             markRead(notif._id);
@@ -32,6 +32,24 @@ const NotificationBell = () => {
           }
         }
       });
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllRead();
+      storeMarkAll();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      await clearAll();
+      setNotifications([]);
+    } catch (e) {
+      console.error(e);
     }
   };
 
@@ -65,10 +83,28 @@ const NotificationBell = () => {
         <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-card border border-border rounded-lg shadow-lg z-50">
           <div className="p-3 border-b border-border flex justify-between items-center bg-muted/30">
             <h3 className="font-semibold text-sm">Notifications</h3>
+            {notifications.length > 0 && (
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={handleMarkAllRead}
+                  title="Mark all as read"
+                  className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <CheckCheck className="h-4 w-4" />
+                </button>
+                <button
+                  onClick={handleClearAll}
+                  title="Clear all"
+                  className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-destructive transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            )}
           </div>
           <div className="flex flex-col">
             {notifications.length === 0 ? (
-              <div className="p-4 text-center text-sm text-muted-foreground">
+              <div className="p-6 text-center text-sm text-muted-foreground">
                 No notifications yet.
               </div>
             ) : (

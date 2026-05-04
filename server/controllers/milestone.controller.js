@@ -203,6 +203,18 @@ const approveMilestone = async (req, res, next) => {
       );
     }
 
+    // ── Socket.IO real-time notification ─────────────────────────────────────
+    try {
+      const { getIO } = require('../utils/socketIO');
+      const ioInstance = getIO();
+      if (ioInstance) {
+        ioInstance.to(order.student._id.toString()).emit('notification', {
+          type: 'milestone_approved',
+          message: `Milestone "${milestone.title}" approved! ₹${studentCredit} credited to your wallet.`,
+        });
+      }
+    } catch (_) { /* socket optional */ }
+
     res.status(200).json({
       success: true,
       data: {

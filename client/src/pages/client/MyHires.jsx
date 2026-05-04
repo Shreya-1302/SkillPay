@@ -2,7 +2,7 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
-import Spinner from '../../components/ui/Spinner';
+import Skeleton from '../../components/ui/Skeleton';
 import Badge from '../../components/ui/Badge';
 import { getMyOrdersClient } from '../../api/order.api';
 import { formatINR } from '../../utils/formatCurrency';
@@ -19,9 +19,10 @@ const MyHires = () => {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <Spinner size={48} />
-        </div>
+        <main className="flex-1 container mx-auto px-4 py-8 max-w-6xl space-y-6">
+          <Skeleton className="h-10 w-48 mb-8" />
+          <Skeleton className="h-[400px] w-full" />
+        </main>
       </div>
     );
   }

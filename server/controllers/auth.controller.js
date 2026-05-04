@@ -240,8 +240,109 @@ const getMe = async (req, res, next) => {
         id: user._id,
         name: user.name,
         email: user.email,
+        collegeEmail: user.collegeEmail,
+        emailVerified: user.emailVerified,
         role: user.role,
+        avatar: user.avatar,
         walletBalance: user.walletBalance,
+        bio: user.bio,
+        skills: user.skills,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Reset Password with OTP
+// @route   POST /api/auth/reset-password
+// @access  Public
+const resetPassword = async (req, res, next) => {
+  try {
+    const { otp, newPassword } = req.body;
+
+    if (!otp || !newPassword) {
+      return next(new ApiError(400, 'OTP and new password are required'));
+    }
+
+    if (newPassword.length < 6) {
+      return next(new ApiError(400, 'Password must be at least 6 characters'));
+    }
+
+    const user = await User.findOne({
+      otp,
+      otpExpiry: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return next(new ApiError(400, 'Invalid or expired OTP'));
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.passwordHash = await bcrypt.hash(newPassword, salt);
+    user.otp = undefined;
+    user.otpExpiry = undefined;
+    await user.save({ validateBeforeSave: false });
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset successfully. You can now log in.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const cloudinary = require('../config/cloudinary');
+
+// @desc    Update logged-in user profile (name, avatar, bio, skills)
+// @route   PATCH /api/auth/me
+// @access  Private
+const updateProfile = async (req, res, next) => {
+  try {
+    const { name, bio, skills } = req.body;
+    let avatarUrl = req.body.avatar;
+
+    if (req.file) {
+      const b64 = Buffer.from(req.file.buffer).toString('base64');
+      const dataURI = `data:${req.file.mimetype};base64,${b64}`;
+      const uploadResponse = await cloudinary.uploader.upload(dataURI, {
+        folder: 'skillpay/avatars',
+      });
+      avatarUrl = uploadResponse.secure_url;
+    }
+
+    const updates = {};
+    if (name) updates.name = name;
+    if (avatarUrl !== undefined) updates.avatar = avatarUrl;
+    if (bio !== undefined) updates.bio = bio;
+    if (skills !== undefined) {
+      if (typeof skills === 'string') {
+        updates.skills = skills.split(',').map(s => s.trim()).filter(s => s);
+      } else {
+        updates.skills = skills;
+      }
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      updates,
+      { new: true, runValidators: true, select: '-passwordHash -otp -otpExpiry' }
+    );
+
+    if (!user) return next(new ApiError(404, 'User not found'));
+
+    res.status(200).json({
+      success: true,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+        walletBalance: user.walletBalance,
+        bio: user.bio,
+        skills: user.skills,
       },
     });
   } catch (error) {
@@ -255,5 +356,7 @@ module.exports = {
   login,
   refreshToken,
   forgotPassword,
+  resetPassword,
+  updateProfile,
   getMe,
 };

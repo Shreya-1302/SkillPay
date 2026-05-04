@@ -53,3 +53,5 @@ export const useRazorpay = () => {
 
   return { isLoaded, openCheckout };
 };
+
+export default useRazorpay;

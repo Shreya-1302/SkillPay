@@ -197,12 +197,12 @@ const getEarningsByMonth = async (req, res, next) => {
   try {
     const userId = req.user.id;
 
-    // We only aggregate MILESTONE_CREDIT transactions to determine earnings
+    // We only aggregate CREDIT transactions to determine earnings
     const earnings = await WalletTransaction.aggregate([
       {
         $match: {
           userId: new mongoose.Types.ObjectId(userId),
-          type: 'MILESTONE_CREDIT',
+          type: 'CREDIT',
           status: 'completed',
         },
       },

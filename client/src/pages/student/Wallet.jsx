@@ -3,6 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { getBalance, addUPI, withdraw } from '../../api/wallet.api';
 import toast from 'react-hot-toast';
 import { Wallet as WalletIcon, CreditCard, ArrowUpRight, ArrowDownLeft, Clock, CheckCircle, XCircle } from 'lucide-react';
+import Skeleton from '../../components/ui/Skeleton';
 
 const Wallet = () => {
   const { user } = useAuth();
@@ -13,7 +14,6 @@ const Wallet = () => {
   const [loading, setLoading] = useState(true);
   const [savingUpi, setSavingUpi] = useState(false);
   const [withdrawing, setWithdrawing] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchWalletData();
@@ -54,10 +54,10 @@ const Wallet = () => {
   };
 
   const handleWithdraw = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     const amount = Number(withdrawAmount);
     
-    if (!amount || amount <= 0) return toast.error('Please enter a valid amount');
+    if (!amount || amount < 100) return toast.error('Minimum withdrawal is ₹100');
     if (amount > balance) return toast.error('Insufficient balance');
 
     setWithdrawing(true);
@@ -65,7 +65,6 @@ const Wallet = () => {
       const data = await withdraw(amount);
       if (data.success) {
         toast.success('Withdrawal initiated! It will be processed shortly.');
-        setIsModalOpen(false);
         setWithdrawAmount('');
         fetchWalletData(); // Refresh balance and transactions
       }
@@ -94,7 +93,12 @@ const Wallet = () => {
   };
 
   if (loading) {
-    return <div className="p-8 text-center">Loading wallet data...</div>;
+    return (
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <Skeleton className="h-10 w-48 mb-8" />
+        <Skeleton className="h-64 w-full" />
+      </div>
+    );
   }
 
   return (
@@ -145,12 +149,29 @@ const Wallet = () => {
             </div>
 
             <div className="border-t md:border-t-0 md:border-l border-border pt-6 md:pt-0 md:pl-8 flex flex-col justify-center">
+              <div className="mb-4">
+                <label className="text-sm font-medium mb-1 block">Withdrawal Amount</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">₹</span>
+                  <input 
+                    type="number" 
+                    min="100"
+                    max={balance}
+                    value={withdrawAmount}
+                    onChange={(e) => setWithdrawAmount(e.target.value)}
+                    className="w-full rounded-md border border-input bg-background pl-8 pr-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                    placeholder="e.g., 500"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-1.5">Minimum withdrawal is ₹100</p>
+              </div>
+              
               <button
-                onClick={() => setIsModalOpen(true)}
-                disabled={balance <= 0}
-                className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                onClick={handleWithdraw}
+                disabled={balance < 100 || withdrawing || !withdrawAmount || withdrawAmount < 100 || withdrawAmount > balance}
+                className="w-full bg-primary text-primary-foreground py-3 rounded-lg font-medium hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-sm"
               >
-                <CreditCard className="h-5 w-5" /> Withdraw Now
+                <CreditCard className="h-5 w-5" /> {withdrawing ? 'Processing...' : 'Withdraw Now'}
               </button>
             </div>
           </div>
@@ -172,24 +193,28 @@ const Wallet = () => {
             <table className="w-full text-left text-sm">
               <thead className="bg-muted/50 text-muted-foreground">
                 <tr>
-                  <th className="px-6 py-4 font-medium">Type</th>
+                  <th className="px-6 py-4 font-medium">Transaction</th>
                   <th className="px-6 py-4 font-medium">Amount</th>
                   <th className="px-6 py-4 font-medium">Date</th>
                   <th className="px-6 py-4 font-medium">Status</th>
-                  <th className="px-6 py-4 font-medium">Description</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {transactions.map((tx) => (
                   <tr key={tx._id} className="hover:bg-muted/20 transition-colors">
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <div className={`p-1.5 rounded-full ${tx.type.includes('DEBIT') ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-full shrink-0 ${tx.type.includes('DEBIT') ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
                           {getTypeIcon(tx.type)}
                         </div>
-                        <span className="font-medium text-xs bg-muted px-2 py-1 rounded-full">
-                          {tx.type.replace('_', ' ')}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-sm">
+                            {tx.type.includes('DEBIT') ? 'Withdrawal to UPI' : 'Milestone Earned'}
+                          </span>
+                          <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                            {tx.description || (tx.type.includes('DEBIT') ? 'Withdrawal' : 'Payment received')}
+                          </span>
+                        </div>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -205,9 +230,9 @@ const Wallet = () => {
                         {getStatusIcon(tx.status)}
                         <span className="capitalize">{tx.status}</span>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 text-muted-foreground max-w-xs truncate">
-                      {tx.description || 'N/A'}
+                      {tx.status === 'processing' && (
+                        <p className="text-[10px] text-muted-foreground mt-1">Usually completes within 24 hours</p>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -217,54 +242,6 @@ const Wallet = () => {
         )}
       </div>
 
-      {/* Withdrawal Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-          <div className="bg-card border border-border rounded-xl shadow-xl w-full max-w-md p-6">
-            <h3 className="text-xl font-bold mb-4">Confirm Withdrawal</h3>
-            <p className="text-sm text-muted-foreground mb-4">
-              Enter the amount you wish to withdraw to your registered UPI ID.
-            </p>
-            
-            <form onSubmit={handleWithdraw}>
-              <div className="mb-6">
-                <label className="block text-sm font-medium mb-2">Amount (₹)</label>
-                <input 
-                  type="number" 
-                  min="1"
-                  max={balance}
-                  value={withdrawAmount}
-                  onChange={(e) => setWithdrawAmount(e.target.value)}
-                  className="w-full rounded-md border border-input bg-background px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50 text-lg font-medium"
-                  placeholder="0.00"
-                  autoFocus
-                />
-                <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                  <span>Min: ₹1</span>
-                  <span>Max: ₹{balance.toLocaleString()}</span>
-                </div>
-              </div>
-              
-              <div className="flex gap-3 justify-end">
-                <button 
-                  type="button" 
-                  onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-md hover:bg-muted transition-colors text-sm font-medium"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  disabled={withdrawing || !withdrawAmount || withdrawAmount > balance}
-                  className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90 transition-colors text-sm font-medium disabled:opacity-50"
-                >
-                  {withdrawing ? 'Processing...' : 'Confirm Withdraw'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

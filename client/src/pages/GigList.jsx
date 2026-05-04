@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'react-router-dom';
-import { Filter, X } from 'lucide-react';
+import { Filter, X, SearchX, ArrowUpDown } from 'lucide-react';
 import { getGigs } from '../api/gig.api';
 import { CATEGORIES } from '../utils/constants';
 import Navbar from '../components/Navbar';
+import Footer from '../components/Footer';
 import GigCard from '../components/GigCard';
-import Spinner from '../components/ui/Spinner';
+import Skeleton from '../components/ui/Skeleton';
 
 const GigList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -19,8 +20,15 @@ const GigList = () => {
     minPrice: searchParams.get('minPrice') || '',
     maxPrice: searchParams.get('maxPrice') || '',
     maxDeliveryDays: searchParams.get('maxDeliveryDays') || '',
+    sort: searchParams.get('sort') || '',
     page: parseInt(searchParams.get('page') || '1', 10),
   });
+
+  const [priceInput, setPriceInput] = useState({
+    min: searchParams.get('minPrice') || '',
+    max: searchParams.get('maxPrice') || ''
+  });
+  const [priceError, setPriceError] = useState('');
 
   // Sync URL changes to state
   useEffect(() => {
@@ -30,7 +38,12 @@ const GigList = () => {
       minPrice: searchParams.get('minPrice') || '',
       maxPrice: searchParams.get('maxPrice') || '',
       maxDeliveryDays: searchParams.get('maxDeliveryDays') || '',
+      sort: searchParams.get('sort') || '',
       page: parseInt(searchParams.get('page') || '1', 10),
+    });
+    setPriceInput({
+      min: searchParams.get('minPrice') || '',
+      max: searchParams.get('maxPrice') || ''
     });
   }, [searchParams]);
 
@@ -51,6 +64,20 @@ const GigList = () => {
     setSearchParams(params);
   };
 
+  const applyPriceFilter = () => {
+    setPriceError('');
+    if (priceInput.min && priceInput.max && Number(priceInput.max) < Number(priceInput.min)) {
+      setPriceError('Max must be ≥ Min');
+      return;
+    }
+    const newFilters = { ...filters, minPrice: priceInput.min, maxPrice: priceInput.max, page: 1 };
+    const params = new URLSearchParams();
+    Object.entries(newFilters).forEach(([k, v]) => {
+      if (v) params.set(k, v);
+    });
+    setSearchParams(params);
+  };
+
   const clearFilters = () => {
     setSearchParams(new URLSearchParams());
   };
@@ -60,16 +87,31 @@ const GigList = () => {
       <Navbar />
       
       <main className="flex-1 container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <h1 className="text-3xl font-bold">
             {filters.search ? `Results for "${filters.search}"` : 'Explore Services'}
           </h1>
-          <button 
-            onClick={() => setIsFilterOpen(!isFilterOpen)}
-            className="md:hidden flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-full font-medium"
-          >
-            <Filter size={18} /> Filters
-          </button>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground flex items-center gap-1"><ArrowUpDown size={14}/> Sort by:</span>
+              <select 
+                value={filters.sort} 
+                onChange={(e) => handleFilterChange('sort', e.target.value)}
+                className="bg-background border border-input text-foreground text-sm rounded-md px-3 py-1.5 focus:ring-primary focus:border-primary"
+              >
+                <option value="">Newest</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="rating_desc">Top Rated</option>
+              </select>
+            </div>
+            <button 
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+              className="md:hidden flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-full font-medium"
+            >
+              <Filter size={18} /> Filters
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col md:flex-row gap-8">
@@ -113,22 +155,33 @@ const GigList = () => {
               {/* Price Range */}
               <div className="mb-6">
                 <h4 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wider">Price Range</h4>
-                <div className="flex items-center gap-2">
-                  <input 
-                    type="number" 
-                    placeholder="Min" 
-                    value={filters.minPrice}
-                    onChange={(e) => handleFilterChange('minPrice', e.target.value)}
-                    className="w-full bg-background border border-input rounded-md px-3 py-1.5 text-sm"
-                  />
-                  <span className="text-muted-foreground">-</span>
-                  <input 
-                    type="number" 
-                    placeholder="Max" 
-                    value={filters.maxPrice}
-                    onChange={(e) => handleFilterChange('maxPrice', e.target.value)}
-                    className="w-full bg-background border border-input rounded-md px-3 py-1.5 text-sm"
-                  />
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="number" 
+                      placeholder="Min" 
+                      min="0"
+                      value={priceInput.min}
+                      onChange={(e) => setPriceInput({...priceInput, min: e.target.value})}
+                      className="w-full bg-background border border-input rounded-md px-3 py-1.5 text-sm"
+                    />
+                    <span className="text-muted-foreground">-</span>
+                    <input 
+                      type="number" 
+                      placeholder="Max" 
+                      min="0"
+                      value={priceInput.max}
+                      onChange={(e) => setPriceInput({...priceInput, max: e.target.value})}
+                      className="w-full bg-background border border-input rounded-md px-3 py-1.5 text-sm"
+                    />
+                  </div>
+                  {priceError && <p className="text-xs text-destructive">{priceError}</p>}
+                  <button 
+                    onClick={applyPriceFilter}
+                    className="w-full py-1.5 bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-md text-sm font-medium transition-colors"
+                  >
+                    Apply Price
+                  </button>
                 </div>
               </div>
 
@@ -153,22 +206,27 @@ const GigList = () => {
           {/* Results Grid */}
           <div className="flex-1">
             {isLoading ? (
-              <div className="h-64 flex items-center justify-center">
-                <Spinner size={40} />
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <Skeleton key={i} className="h-80 w-full" />
+                ))}
               </div>
             ) : isError ? (
               <div className="text-center py-12 bg-destructive/10 text-destructive rounded-xl">
                 <p>Failed to load gigs. Please try again.</p>
               </div>
             ) : data?.gigs?.length === 0 ? (
-              <div className="text-center py-24 bg-card/50 rounded-xl border border-border/50">
-                <h3 className="text-xl font-semibold mb-2">No results found</h3>
-                <p className="text-muted-foreground">Try adjusting your filters or search terms.</p>
+              <div className="flex flex-col items-center justify-center py-24 bg-card/50 rounded-xl border border-border/50 text-center">
+                <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                  <SearchX className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-xl font-semibold mb-2">No services found for this search</h3>
+                <p className="text-muted-foreground max-w-md">Try adjusting your filters, removing price limits, or searching for something else.</p>
                 <button 
                   onClick={clearFilters}
-                  className="mt-4 px-6 py-2 bg-primary text-primary-foreground rounded-full font-medium"
+                  className="mt-6 px-6 py-2 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors rounded-full font-medium"
                 >
-                  Clear Filters
+                  Clear all filters
                 </button>
               </div>
             ) : (
@@ -223,6 +281,7 @@ const GigList = () => {
           </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 };

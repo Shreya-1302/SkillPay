@@ -24,3 +24,8 @@ export const getOrderById = async (id) => {
   const response = await api.get(`/orders/${id}`);
   return response.data.data;
 };
+
+export const raiseDispute = async (id, reason) => {
+  const response = await api.post(`/orders/${id}/dispute`, { reason });
+  return response.data;
+};
