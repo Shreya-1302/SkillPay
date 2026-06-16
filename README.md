@@ -22,28 +22,50 @@
 
 ## 🏗️ Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────┐
-│                  React Frontend                  │
-│  Vite + TanStack Query + Zustand + Framer Motion │
+│                  React Frontend                 │
+│  Vite + TanStack Query + Zustand + Framer Motion│
 └──────────────────────┬──────────────────────────┘
                        │ REST + Socket.IO
 ┌──────────────────────▼──────────────────────────┐
-│               Express.js Backend                 │
-│  Helmet · Rate-Limit · JWT · express-validator   │
+│               Express.js Backend                │
+│  Helmet · Rate-Limit · JWT · express-validator  │
 ├──────────────┬───────────────────────────────────┤
-│  MongoDB     │  Cloudinary   │  Razorpay         │
-│  (Mongoose)  │  (Images)     │  (Payments)       │
+│  MongoDB     │  Cloudinary   │  Razorpay        │
+│  (Mongoose)  │  (Images)     │  (Payments)      │
 └──────────────┴───────────────┴───────────────────┘
         │ Bull Queue (Redis) — Deadline jobs
 ```
 
 ---
 
+## ✨ Features by Role
+
+### 🎓 Student (Freelancer)
+- **Gig Management:** Create & manage gigs with multi-image Cloudinary uploads and mandatory validation.
+- **Order Management:** Accept / deliver orders tracking progress via a comprehensive **Milestone Tracker**.
+- **Wallet & Earnings:** Advanced Wallet dashboard featuring wallet balance, UPI withdrawal requests with secure validated inputs, and visual analytics using **Recharts** (EarningsChart).
+- **Real-time Connectivity:** Live notifications and chat sync via **Socket.IO**.
+- **Project Health Status:** Tools to flag project health ("Needs Attention" toggles) to ensure timely delivery.
+
+### 👔 Client
+- **Discover:** Browse & search gigs by category and price with a smooth UI (enhanced by Skeleton Loaders for optimized perceived performance).
+- **Secure Checkout:** Escrow-based milestone payments driven by **Razorpay**.
+- **Order Details:** Detailed requirement tracking, milestone reviews, and document submission workflows.
+- **Dispute & Reviews:** Raise disputes for in-progress orders and leave detailed reviews utilizing the built-in StarRating system.
+
+### 🛡️ Admin
+- **Platform Analytics:** Data-driven dashboard metrics mapping revenue, orders, users, and disputes.
+- **User Management:** Search, filter by role, and manage user access (ban/unban).
+- **Dispute Resolution:** Powerful resolution modal to release funds to the student or automate Razorpay refunds to the client.
+
+---
+
 ## 💳 Payment Flows
 
 ### 1 — Hire & Escrow
-```
+```text
 Client hits "Pay & Hire"
   → Backend creates Razorpay order
   → Client completes payment in Razorpay modal
@@ -52,7 +74,7 @@ Client hits "Pay & Hire"
 ```
 
 ### 2 — Release to Student
-```
+```text
 Client approves delivery on OrderDetail page
   → Backend: order.status → completed
   → student.walletBalance += order.amount
@@ -60,7 +82,7 @@ Client approves delivery on OrderDetail page
 ```
 
 ### 3 — Dispute Resolution
-```
+```text
 Client raises dispute on in_progress order
   → Admin reviews on /admin/disputes
   → Admin picks: "Release to Student" or "Refund to Client"
@@ -69,42 +91,21 @@ Client raises dispute on in_progress order
 
 ---
 
-## ✨ Features by Role
-
-### 🎓 Student (Freelancer)
-- Create & manage gigs with Cloudinary image uploads
-- Accept / deliver orders with milestone tracking
-- Wallet dashboard — balance, UPI withdraw, earnings chart
-- Real-time notifications via Socket.IO
-
-### 👔 Client
-- Browse & search gigs by category / price
-- Secure checkout with Razorpay
-- Order detail — requirements, milestones, review form
-- Raise disputes for in-progress orders
-
-### 🛡️ Admin
-- Platform metrics dashboard (revenue, orders, users, disputes)
-- User management — search, filter by role, ban/unban toggle
-- Dispute resolution modal — release to student or refund to client
-
----
-
 ## 🛠️ Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React 19, Vite, TanStack Query, Zustand, Framer Motion, Recharts |
-| Styling | Tailwind CSS v4 |
-| Backend | Node.js 22, Express 5 |
-| Database | MongoDB Atlas (Mongoose) |
-| Auth | JWT (access + refresh tokens), bcrypt |
-| Payments | Razorpay (orders, webhooks, refunds) |
-| File Upload | Multer + Cloudinary |
-| Real-time | Socket.IO |
-| Email | Nodemailer (Gmail SMTP) |
-| Jobs | Bull (Redis) |
-| Security | Helmet, express-rate-limit, express-validator |
+| **Frontend** | React 19, Vite, TanStack Query, Zustand, Framer Motion, Recharts, Lucide React, Socket.IO Client |
+| **Styling** | Tailwind CSS v4, Custom Skeleton Loaders |
+| **Backend** | Node.js 22, Express 5 |
+| **Database** | MongoDB Atlas (Mongoose) |
+| **Auth** | JWT (access + refresh tokens), bcryptjs |
+| **Payments** | Razorpay (orders, webhooks, refunds) |
+| **File Upload** | Multer + Cloudinary |
+| **Real-time** | Socket.IO |
+| **Email** | Nodemailer (Gmail SMTP) |
+| **Jobs** | Bull (Redis) |
+| **Security** | Helmet, express-rate-limit, express-validator, CORS |
 
 ---
 
@@ -191,12 +192,12 @@ Use Razorpay **test card**: `4111 1111 1111 1111` (any future expiry, any CVV).
 
 ## 📁 Project Structure
 
-```
+```text
 SkillPay/
 ├── client/                 # React frontend
 │   ├── src/
-│   │   ├── api/            # Axios API clients
-│   │   ├── components/     # Shared UI components
+│   │   ├── api/            # Axios API clients & Interceptors
+│   │   ├── components/     # Shared UI (Skeleton Loaders, StarRating, etc.)
 │   │   ├── hooks/          # Custom React hooks
 │   │   ├── pages/          # Page components (client/ student/ admin/)
 │   │   ├── store/          # Zustand state stores
