@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, X, CheckCircle2, UserCheck, Undo2 } from 'lucide-react';
+import { AlertTriangle, X, CheckCircle2, UserCheck, Undo2, ArrowLeft } from 'lucide-react';
 import { getDisputedOrders, resolveDispute } from '../../api/admin.api';
 import { formatINR } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
@@ -103,6 +104,7 @@ const DisputeModal = ({ order, onClose, onResolve, isPending }) => {
 };
 
 const AdminDisputes = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [selectedOrder, setSelectedOrder] = useState(null);
 
@@ -124,12 +126,21 @@ const AdminDisputes = () => {
       <Navbar />
 
       <main className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-1 flex items-center gap-2">
-            <AlertTriangle className="h-7 w-7 text-amber-500" />
-            Dispute Management
-          </h1>
-          <p className="text-muted-foreground">Review and resolve disputed orders.</p>
+        <div className="flex items-center gap-3 mb-8">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center justify-center w-10 h-10 rounded-xl border border-border/50 text-muted-foreground hover:text-foreground hover:bg-secondary/30 transition-colors shrink-0 cursor-pointer"
+            aria-label="Go Back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-3xl font-bold mb-1 flex items-center gap-2">
+              <AlertTriangle className="h-7 w-7 text-amber-500" />
+              Dispute Management
+            </h1>
+            <p className="text-muted-foreground text-sm">Review and resolve disputed orders.</p>
+          </div>
         </div>
 
         <div className="bg-card border border-border/50 rounded-2xl shadow-sm overflow-hidden">

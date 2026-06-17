@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
-import { Star, Clock, Calendar, CheckCircle2, AlertCircle, MessageSquare } from 'lucide-react';
+import { Star, Clock, Calendar, CheckCircle2, AlertCircle, MessageSquare, ArrowLeft } from 'lucide-react';
 import { getGigById } from '../api/gig.api';
 import { getReviewsByGig } from '../api/review.api';
 import { formatINR } from '../utils/formatCurrency';
@@ -84,6 +84,15 @@ const GigDetail = () => {
       <Navbar />
 
       <main className="flex-1 container mx-auto px-4 py-8 max-w-6xl">
+        <div className="mb-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center justify-center w-10 h-10 rounded-xl border border-border/50 text-muted-foreground hover:text-foreground hover:bg-secondary/30 transition-colors shrink-0 cursor-pointer"
+            aria-label="Go Back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+        </div>
         <div className="flex flex-col lg:flex-row gap-8">
 
           {/* ── Left Column ── */}

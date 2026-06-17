@@ -1,15 +1,16 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import Skeleton from '../../components/ui/Skeleton';
 import Badge from '../../components/ui/Badge';
 import { getMyOrdersClient } from '../../api/order.api';
 import { formatINR } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
-import { Search } from 'lucide-react';
+import { Search, ArrowLeft } from 'lucide-react';
 
 const MyHires = () => {
+  const navigate = useNavigate();
   const { data: orders, isLoading } = useQuery({
     queryKey: ['clientOrders'],
     queryFn: getMyOrdersClient,
@@ -43,9 +44,18 @@ const MyHires = () => {
       
       <main className="flex-1 container mx-auto px-4 py-8 max-w-6xl">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">My Hires</h1>
-            <p className="text-muted-foreground mt-1">Manage all your freelance projects</p>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center justify-center w-10 h-10 rounded-xl border border-border/50 text-muted-foreground hover:text-foreground hover:bg-secondary/30 transition-colors shrink-0 cursor-pointer"
+              aria-label="Go Back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-3xl font-bold text-foreground">My Hires</h1>
+              <p className="text-muted-foreground mt-1">Manage all your freelance projects</p>
+            </div>
           </div>
         </div>
 

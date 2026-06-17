@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Filter, X, SearchX, ArrowUpDown, SlidersHorizontal,
   Code, Paintbrush, PenTool, Video, Music, Briefcase,
   Megaphone, Grid3X3, LayoutList, ChevronLeft, ChevronRight,
-  Tag, Clock, TrendingUp, Star
+  Tag, Clock, TrendingUp, Star, ArrowLeft
 } from 'lucide-react';
 import { getGigs } from '../api/gig.api';
 import { CATEGORIES } from '../utils/constants';
@@ -54,6 +54,7 @@ const DELIVERY_OPTIONS = [
 
 /* ══════════════════════════════════════════════════════════════════════ */
 const GigList = () => {
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'list'
@@ -134,13 +135,22 @@ const GigList = () => {
 
         {/* ── Page Header ── */}
         <div className="gl-page-header">
-          <div className="gl-header-left">
-            <h1 className="gl-page-title">{pageTitle}</h1>
-            {data?.totalGigs != null && !isLoading && (
-              <span className="gl-result-count">
-                {data.totalGigs} {data.totalGigs === 1 ? 'service' : 'services'} available
-              </span>
-            )}
+          <div className="gl-header-left flex items-center gap-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center justify-center w-10 h-10 rounded-xl border border-border/50 text-muted-foreground hover:text-foreground hover:bg-secondary/30 transition-colors shrink-0 cursor-pointer animate-none"
+              aria-label="Go Back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="gl-page-title">{pageTitle}</h1>
+              {data?.totalGigs != null && !isLoading && (
+                <span className="gl-result-count">
+                  {data.totalGigs} {data.totalGigs === 1 ? 'service' : 'services'} available
+                </span>
+              )}
+            </div>
           </div>
 
           <div className="gl-header-right">

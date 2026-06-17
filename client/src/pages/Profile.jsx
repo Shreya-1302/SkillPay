@@ -1,12 +1,14 @@
 import { useState, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { updateProfile } from '../api/auth.api';
 import { useAuthStore } from '../store/authStore';
 import { useAuth } from '../hooks/useAuth';
 import toast from 'react-hot-toast';
-import { User, Mail, Shield, Camera, Loader2, Upload, BadgeCheck, AlertCircle, BookOpen, Star } from 'lucide-react';
+import { User, Mail, Shield, Camera, Loader2, Upload, BadgeCheck, AlertCircle, BookOpen, Star, ArrowLeft } from 'lucide-react';
 import Navbar from '../components/Navbar';
 
 const Profile = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const updateUser = useAuthStore((state) => state.updateUser);
   const [loading, setLoading] = useState(false);
@@ -60,7 +62,16 @@ const Profile = () => {
     <div className="min-h-screen bg-background">
       <Navbar />
       <main className="container mx-auto px-4 py-10 max-w-2xl">
-        <h1 className="text-3xl font-bold mb-8">My Profile</h1>
+        <div className="flex items-center gap-3 mb-8">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center justify-center w-10 h-10 rounded-xl border border-border/50 text-muted-foreground hover:text-foreground hover:bg-secondary/30 transition-colors shrink-0 cursor-pointer"
+            aria-label="Go Back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-3xl font-bold">My Profile</h1>
+        </div>
 
         <div className="bg-card border border-border/50 rounded-2xl shadow-sm overflow-hidden">
           {/* ── Avatar header ── */}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit2, Trash2, Eye, PauseCircle, PlayCircle } from 'lucide-react';
+import { Plus, Edit2, Trash2, Eye, PauseCircle, PlayCircle, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getMyGigs, deleteGig, updateGig } from '../../api/gig.api';
 import { formatINR } from '../../utils/formatCurrency';
@@ -12,6 +12,7 @@ import Modal from '../../components/ui/Modal';
 
 const MyGigs = () => {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [gigToDelete, setGigToDelete] = useState(null);
 
@@ -61,9 +62,18 @@ const MyGigs = () => {
       
       <main className="container mx-auto px-4 py-8">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">My Services</h1>
-            <p className="text-muted-foreground">Manage your gigs and track their performance.</p>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center justify-center w-10 h-10 rounded-xl border border-border/50 text-muted-foreground hover:text-foreground hover:bg-secondary/30 transition-colors shrink-0 cursor-pointer"
+              aria-label="Go Back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-3xl font-bold">My Services</h1>
+              <p className="text-muted-foreground">Manage your gigs and track their performance.</p>
+            </div>
           </div>
           <Link 
             to="/student/create-gig"

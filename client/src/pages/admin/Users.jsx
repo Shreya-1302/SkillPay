@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Shield, GraduationCap, Users as UsersIcon, Ban, CheckCircle2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, Shield, GraduationCap, Users as UsersIcon, Ban, CheckCircle2, ChevronLeft, ChevronRight, ArrowLeft } from 'lucide-react';
 import { getAllUsers, banUser } from '../../api/admin.api';
 import { formatDate } from '../../utils/formatDate';
 import Navbar from '../../components/Navbar';
@@ -15,6 +16,7 @@ const RoleBadge = ({ role }) => {
 };
 
 const AdminUsers = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [search, setSearch]   = useState('');
   const [role, setRole]       = useState('');
@@ -52,9 +54,18 @@ const AdminUsers = () => {
       <Navbar />
 
       <main className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-1">User Management</h1>
-          <p className="text-muted-foreground">Search, filter, and manage platform users.</p>
+        <div className="flex items-center gap-3 mb-8">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center justify-center w-10 h-10 rounded-xl border border-border/50 text-muted-foreground hover:text-foreground hover:bg-secondary/30 transition-colors shrink-0 cursor-pointer"
+            aria-label="Go Back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-3xl font-bold mb-1">User Management</h1>
+            <p className="text-muted-foreground text-sm">Search, filter, and manage platform users.</p>
+          </div>
         </div>
 
         {/* ── Filters ── */}

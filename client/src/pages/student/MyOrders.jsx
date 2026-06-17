@@ -1,9 +1,9 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Clock, CheckCircle2, XCircle, AlertCircle, ShieldCheck,
-  PackageCheck, Wallet, ArrowRight, RefreshCcw,
+  PackageCheck, Wallet, ArrowRight, RefreshCcw, ArrowLeft,
 } from 'lucide-react';
 import { getMyOrdersStudent } from '../../api/order.api';
 import { formatINR } from '../../utils/formatCurrency';
@@ -51,6 +51,7 @@ const StatCard = ({ icon: Icon, label, value, valueClass = '', iconBg = 'bg-prim
 // ─── Main Page ─────────────────────────────────────────────────────────────────
 const MyOrders = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const { data: orders, isLoading, refetch, isFetching } = useQuery({
     queryKey: ['studentOrders'],
@@ -73,9 +74,18 @@ const MyOrders = () => {
 
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">My Orders</h1>
-            <p className="text-muted-foreground text-sm mt-1">Track deliverables and milestone payments</p>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center justify-center w-10 h-10 rounded-xl border border-border/50 text-muted-foreground hover:text-foreground hover:bg-secondary/30 transition-colors shrink-0 cursor-pointer"
+              aria-label="Go Back"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </button>
+            <div>
+              <h1 className="text-3xl font-bold">My Orders</h1>
+              <p className="text-muted-foreground text-sm mt-1">Track deliverables and milestone payments</p>
+            </div>
           </div>
           <button
             onClick={() => refetch()}

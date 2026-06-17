@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { ImagePlus, X, Upload } from 'lucide-react';
+import { ImagePlus, X, Upload, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { createGig } from '../../api/gig.api';
 import { CATEGORIES } from '../../utils/constants';
@@ -108,9 +108,18 @@ const CreateGig = () => {
       <Navbar />
       
       <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Create a New Service</h1>
-          <p className="text-muted-foreground">Showcase your skills and start earning by offering your services.</p>
+        <div className="flex items-center gap-3 mb-8">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center justify-center w-10 h-10 rounded-xl border border-border/50 text-muted-foreground hover:text-foreground hover:bg-secondary/30 transition-colors shrink-0 cursor-pointer"
+            aria-label="Go Back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Create a New Service</h1>
+            <p className="text-muted-foreground text-sm">Showcase your skills and start earning by offering your services.</p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8 bg-card border border-border/50 rounded-2xl p-6 sm:p-10 shadow-sm">

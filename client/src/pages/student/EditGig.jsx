@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ImagePlus, X, Save } from 'lucide-react';
+import { ImagePlus, X, Save, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getGigById, updateGig } from '../../api/gig.api';
 import { CATEGORIES } from '../../utils/constants';
@@ -132,9 +132,18 @@ const EditGig = () => {
       <Navbar />
       
       <main className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Edit Service</h1>
-          <p className="text-muted-foreground">Update your gig details to attract more clients.</p>
+        <div className="flex items-center gap-3 mb-8">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center justify-center w-10 h-10 rounded-xl border border-border/50 text-muted-foreground hover:text-foreground hover:bg-secondary/30 transition-colors shrink-0 cursor-pointer"
+            aria-label="Go Back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-3xl font-bold mb-2">Edit Service</h1>
+            <p className="text-muted-foreground text-sm">Update your gig details to attract more clients.</p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8 bg-card border border-border/50 rounded-2xl p-6 sm:p-10 shadow-sm">

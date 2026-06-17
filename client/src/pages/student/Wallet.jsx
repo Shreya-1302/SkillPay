@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { getBalance, addUPI, withdraw } from '../../api/wallet.api';
 import toast from 'react-hot-toast';
-import { Wallet as WalletIcon, CreditCard, ArrowUpRight, ArrowDownLeft, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { Wallet as WalletIcon, CreditCard, ArrowUpRight, ArrowDownLeft, Clock, CheckCircle, XCircle, ArrowLeft } from 'lucide-react';
 import Skeleton from '../../components/ui/Skeleton';
+import Navbar from '../../components/Navbar';
 
 const Wallet = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [balance, setBalance] = useState(0);
   const [transactions, setTransactions] = useState([]);
   const [upiId, setUpiId] = useState('');
@@ -94,16 +97,30 @@ const Wallet = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-8 max-w-5xl">
-        <Skeleton className="h-10 w-48 mb-8" />
-        <Skeleton className="h-64 w-full" />
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 py-8 max-w-5xl">
+          <Skeleton className="h-10 w-48 mb-8" />
+          <Skeleton className="h-64 w-full" />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-5xl">
-      <h1 className="text-3xl font-bold mb-8">My Wallet</h1>
+    <div className="min-h-screen bg-background">
+      <Navbar />
+      <div className="container mx-auto px-4 py-8 max-w-5xl">
+        <div className="flex items-center gap-3 mb-8">
+          <button
+            onClick={() => navigate(-1)}
+            className="flex items-center justify-center w-10 h-10 rounded-xl border border-border/50 text-muted-foreground hover:text-foreground hover:bg-secondary/30 transition-colors shrink-0 cursor-pointer"
+            aria-label="Go Back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-3xl font-bold">My Wallet</h1>
+        </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Balance Card */}
@@ -241,9 +258,9 @@ const Wallet = () => {
           </div>
         )}
       </div>
-
     </div>
-  );
+  </div>
+);
 };
 
 export default Wallet;
