@@ -67,12 +67,19 @@ app.use('/api/reviews', require('./routes/review.routes'));
 app.use('/api/milestones', require('./routes/milestone.routes'));
 
 // Serve static assets in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/dist')));
-  app.get(/.*/, (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../client/dist/index.html'));
+// if (process.env.NODE_ENV === 'production') {
+//   app.use(express.static(path.join(__dirname, '../client/dist')));
+//   app.get(/.*/, (req, res) => {
+//     res.sendFile(path.resolve(__dirname, '../client/dist/index.html'));
+//   });
+// }
+
+app.get("/", (req, res) => {
+  res.json({
+    success: true,
+    message: "SkillPay API Running"
   });
-}
+});
 
 // Global Error Handler (must be after routes)
 app.use(errorHandler);
