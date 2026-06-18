@@ -21,9 +21,8 @@ const server = http.createServer(app);
 
 // Define allowed origins for CORS and Socket.IO
 const allowedOrigins = [
-  'http://localhost:5173',
-  'https://vehigo.vercel.app',
-  'https://skill-pay.vercel.app',
+  "http://localhost:5173",
+  "https://skill-pay.vercel.app"
 ];
 if (process.env.CLIENT_URL) {
   const envOrigins = process.env.CLIENT_URL.split(',').map(o => o.trim());
