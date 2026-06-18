@@ -19,10 +19,24 @@ const { setIO } = require('./utils/socketIO');
 const app = express();
 const server = http.createServer(app);
 
+// Define allowed origins for CORS and Socket.IO
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://vehigo.vercel.app',
+];
+if (process.env.CLIENT_URL) {
+  const envOrigins = process.env.CLIENT_URL.split(',').map(o => o.trim());
+  envOrigins.forEach(o => {
+    if (o && !allowedOrigins.includes(o)) {
+      allowedOrigins.push(o);
+    }
+  });
+}
+
 // Socket.IO Init
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL,
+    origin: allowedOrigins,
     credentials: true,
   },
 });
@@ -38,7 +52,7 @@ require('./jobs/orderDeadline.job');
 
 // Security and utility middleware
 app.use(helmet());
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(morgan('dev'));
 app.use(compression());
 
