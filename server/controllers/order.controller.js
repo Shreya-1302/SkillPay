@@ -6,7 +6,7 @@ const ApiError = require('../utils/ApiError');
 const { scheduleDeadlineJob } = require('../jobs/orderDeadline.job');
 
 const razorpay = new Razorpay({
-  key_id: process.env.VITE_RAZORPAY_KEY_ID || 'test',
+  key_id: process.env.RAZORPAY_KEY_ID || 'test',
   key_secret: process.env.RAZORPAY_KEY_SECRET || 'test_secret',
 });
 
@@ -36,11 +36,15 @@ const createOrder = async (req, res, next) => {
     };
 
     let rzpOrder;
-    try {
-      rzpOrder = await razorpay.orders.create(options);
-    } catch (err) {
-      // Allow proceeding with fake id if Razorpay is not configured (for dev)
+    if (process.env.DEV_PAYMENT_BYPASS === 'true') {
       rzpOrder = { id: `fake_rzp_${Date.now()}`, amount: amountInPaise, currency: 'INR' };
+    } else {
+      try {
+        rzpOrder = await razorpay.orders.create(options);
+      } catch (err) {
+        // Allow proceeding with fake id if Razorpay is not configured (for dev)
+        rzpOrder = { id: `fake_rzp_${Date.now()}`, amount: amountInPaise, currency: 'INR' };
+      }
     }
 
     // Calculate deadline based on gig deliveryDays

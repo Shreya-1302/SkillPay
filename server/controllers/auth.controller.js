@@ -143,11 +143,13 @@ const login = async (req, res, next) => {
       accessToken,
       refreshToken,
       user: {
+        _id: user._id,
         id: user._id,
         name: user.name,
         email: user.email,
         role: user.role,
         walletBalance: user.walletBalance,
+        avatar: user.avatar,
       },
     });
   } catch (error) {
@@ -237,6 +239,7 @@ const getMe = async (req, res, next) => {
     res.status(200).json({
       success: true,
       user: {
+        _id: user._id,
         id: user._id,
         name: user.name,
         email: user.email,
@@ -335,6 +338,7 @@ const updateProfile = async (req, res, next) => {
     res.status(200).json({
       success: true,
       user: {
+        _id: user._id,
         id: user._id,
         name: user.name,
         email: user.email,

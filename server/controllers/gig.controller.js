@@ -92,13 +92,17 @@ const getGigs = async (req, res, next) => {
       .sort(sortOption)
       .skip(skip)
       .limit(Number(limit))
-      .populate('studentId', 'name avatar avgRating');
+      .populate('studentId', 'name avatar avgRating createdAt')
+      .lean(); // use lean() to get plain objects
+
+    // Expose `student` alias matching frontend expectations
+    const gigsWithStudentAlias = gigs.map(g => ({ ...g, student: g.studentId }));
 
     const total = await Gig.countDocuments(query);
 
     res.status(200).json({
       success: true,
-      data: gigs,
+      data: gigsWithStudentAlias,
       pagination: {
         total,
         page: Number(page),
@@ -113,17 +117,23 @@ const getGigs = async (req, res, next) => {
 const getGigById = async (req, res, next) => {
   try {
     const gig = await Gig.findById(req.params.id)
-      .populate('studentId', 'name avatar avgRating');
+      .populate('studentId', 'name avatar avgRating createdAt');
 
     if (!gig || gig.status === 'deleted') {
       return next(new ApiError(404, 'Gig not found'));
     }
 
-    res.status(200).json({ success: true, data: gig });
+    // Convert to plain object and expose `student` alias so frontend
+    // can use both gig.student and gig.studentId
+    const gigObj = gig.toObject();
+    gigObj.student = gigObj.studentId;
+
+    res.status(200).json({ success: true, data: gigObj });
   } catch (error) {
     next(error);
   }
 };
+
 
 const updateGig = async (req, res, next) => {
   try {

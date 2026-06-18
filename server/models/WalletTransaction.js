@@ -13,7 +13,7 @@ const walletTransactionSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ['CREDIT', 'DEBIT', 'WITHDRAWAL_DEBIT', 'WITHDRAWAL_REVERSAL'],
+      enum: ['CREDIT', 'DEBIT', 'MILESTONE_CREDIT', 'WITHDRAWAL_DEBIT', 'WITHDRAWAL_REVERSAL'],
       required: true,
     },
     status: {
@@ -26,6 +26,12 @@ const walletTransactionSchema = new mongoose.Schema(
     },
     description: {
       type: String,
+    },
+    note: {
+      type: String,
+    },
+    referenceId: {
+      type: mongoose.Schema.Types.ObjectId,
     },
     balanceAfter: {
       type: Number,

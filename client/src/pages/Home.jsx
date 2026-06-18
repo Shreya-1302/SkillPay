@@ -893,11 +893,17 @@ const Home = () => {
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
           gap: 16px;
+          align-items: stretch;
+        }
+        .home-cat-grid > div {
+          display: flex;
+          height: 100%;
         }
         .home-cat-card {
           display: flex;
           flex-direction: column;
           align-items: center;
+          justify-content: center;
           gap: 12px;
           padding: 32px 20px;
           border-radius: 20px;
@@ -908,6 +914,8 @@ const Home = () => {
           transition: border-color 0.3s, background 0.3s, box-shadow 0.3s;
           position: relative;
           overflow: hidden;
+          width: 100%;
+          height: 100%;
         }
         .home-cat-card::before {
           content: '';

@@ -5,7 +5,7 @@ const ApiError = require('../utils/ApiError');
 const mongoose = require('mongoose');
 
 const razorpay = new Razorpay({
-  key_id: process.env.VITE_RAZORPAY_KEY_ID || 'test',
+  key_id: process.env.RAZORPAY_KEY_ID || 'test',
   key_secret: process.env.RAZORPAY_KEY_SECRET || 'test_secret',
 });
 
@@ -146,25 +146,36 @@ const withdraw = async (req, res, next) => {
     try {
       // Create Razorpay Payout
       let payoutId;
-      try {
-        const payout = await razorpay.payouts.create({
-          account_number: process.env.RAZORPAY_ACCOUNT_NUMBER || '2323230076722003', // Test acc
-          fund_account_id: user.razorpayFundAccId,
-          amount: amount * 100, // in paise
-          currency: 'INR',
-          mode: 'UPI',
-          purpose: 'payout',
-          reference_id: transaction._id.toString(),
-          queue_if_low_balance: true,
-        });
-        payoutId = payout.id;
-      } catch (err) {
-        // Fallback for dev mode
+      let isFake = false;
+      if (process.env.DEV_PAYMENT_BYPASS === 'true') {
         payoutId = `fake_payout_${Date.now()}`;
+        isFake = true;
+      } else {
+        try {
+          const payout = await razorpay.payouts.create({
+            account_number: process.env.RAZORPAY_ACCOUNT_NUMBER || '2323230076722003', // Test acc
+            fund_account_id: user.razorpayFundAccId,
+            amount: amount * 100, // in paise
+            currency: 'INR',
+            mode: 'UPI',
+            purpose: 'payout',
+            reference_id: transaction._id.toString(),
+            queue_if_low_balance: true,
+          });
+          payoutId = payout.id;
+        } catch (err) {
+          // Fallback for dev mode
+          payoutId = `fake_payout_${Date.now()}`;
+          isFake = true;
+        }
       }
 
       // Update transaction with payout ID
       transaction.razorpayPayoutId = payoutId;
+      if (isFake) {
+        transaction.status = 'completed';
+        transaction.description = 'Withdrawal to UPI (Simulated)';
+      }
       await transaction.save();
 
       res.status(200).json({
@@ -202,7 +213,7 @@ const getEarningsByMonth = async (req, res, next) => {
       {
         $match: {
           userId: new mongoose.Types.ObjectId(userId),
-          type: 'CREDIT',
+          type: { $in: ['CREDIT', 'MILESTONE_CREDIT'] },
           status: 'completed',
         },
       },
