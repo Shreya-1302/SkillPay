@@ -35,3 +35,8 @@ export const updateProfile = async (data) => {
   const response = await api.patch('/auth/me', data);
   return response.data.user;
 };
+
+export const resendOtp = async (email) => {
+  const response = await api.post('/auth/resend-otp', { email });
+  return response.data;
+};

@@ -12,25 +12,42 @@ const { signAccessToken, signRefreshToken } = require('../utils/generateToken');
 const register = async (req, res, next) => {
   try {
     let { name, email, collegeEmail, password, role } = req.body;
-    
+
     if (!collegeEmail || collegeEmail.trim() === '') {
       collegeEmail = undefined;
     }
 
-    // Check if user already exists
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      return next(new ApiError(400, 'User already exists with this email'));
+    // ── Check for existing user ─────────────────────────────────────────
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      if (existingUser.emailVerified) {
+        // Fully registered — tell the user to just log in
+        return next(new ApiError(400, 'An account with this email already exists. Please sign in.'));
+      }
+      // Unverified user (e.g., previous registration timed out before OTP arrived).
+      // Refresh their OTP and resend the email so they can complete sign-up.
+      const { otp, otpExpiry } = generateOTP();
+      existingUser.name        = name;
+      existingUser.role        = role || existingUser.role || 'client';
+      existingUser.otp         = otp;
+      existingUser.otpExpiry   = otpExpiry;
+      await existingUser.save({ validateBeforeSave: false });
+
+      _sendOtpEmail(existingUser.email, existingUser.name, otp);
+
+      return res.status(200).json({
+        success: true,
+        message:
+          'We found an unverified account with this email. A fresh OTP has been sent — please check your inbox (and spam folder).',
+      });
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
+    // ── New user ─────────────────────────────────────────────────────────
+    // bcrypt cost 8 ≈ 40-80 ms (vs cost 10 ≈ 150-300 ms) — still secure, much faster
+    const salt         = await bcrypt.genSalt(8);
     const passwordHash = await bcrypt.hash(password, salt);
-
-    // Generate OTP
     const { otp, otpExpiry } = generateOTP();
 
-    // Create user (not yet verified)
     const user = await User.create({
       name,
       email,
@@ -41,45 +58,76 @@ const register = async (req, res, next) => {
       otpExpiry,
     });
 
-    // Dev mode: auto-verify when no email credentials are configured
+    // Dev mode: no email credentials → auto-verify immediately
     if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
       user.emailVerified = true;
-      user.otp = undefined;
-      user.otpExpiry = undefined;
+      user.otp           = undefined;
+      user.otpExpiry     = undefined;
       await user.save({ validateBeforeSave: false });
       console.log(`[DEV] Auto-verified ${user.email}. OTP was: ${otp}`);
       return res.status(201).json({
         success: true,
-        message: 'Registration successful. [DEV] Email auto-verified — you can log in now.',
+        message: 'Registration successful. [DEV mode] You can log in now.',
       });
     }
 
-    // Send OTP via email — fire asynchronously so the API responds fast.
-    // If email fails we still keep the user registered and advise them to resend.
-    const message = `
-      <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto">
-        <h2 style="color:#6366f1">Verify your SkillPay account</h2>
-        <p>Hi ${name}, welcome to SkillPay!</p>
-        <p>Use the OTP below to verify your email address. It expires in <strong>10 minutes</strong>.</p>
-        <div style="font-size:32px;font-weight:bold;letter-spacing:8px;text-align:center;padding:16px;background:#f3f4f6;border-radius:8px;margin:16px 0">${otp}</div>
-        <p>If you did not create a SkillPay account, please ignore this email.</p>
-        <hr/><p style="color:#6b7280;font-size:12px">SkillPay — India's Student Freelance Marketplace</p>
-      </div>
-    `;
-
-    // Don't await — respond immediately and let email deliver in background
-    sendEmail(user.email, 'Verify your SkillPay Email Address', message)
-      .then(() => console.log(`[Email] OTP sent to ${user.email}`))
-      .catch((err) => {
-        console.error(`[Email] Failed to send OTP to ${user.email}:`, err.message);
-        // Clear transporter singleton so the next attempt gets a fresh connection
-        try { require('./auth.controller').__resetEmailTransporter?.(); } catch (_) {}
-      });
+    // Fire email in the background — don't block the HTTP response
+    _sendOtpEmail(user.email, user.name, otp);
 
     return res.status(201).json({
       success: true,
       message:
-        'Registration successful! Please check your email (including spam folder) for your OTP verification code.',
+        'Registration successful! Check your email (and spam/junk folder) for a 6-digit OTP. It is valid for 10 minutes.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// ── Internal helper: fire-and-forget OTP email ────────────────────────────────
+function _sendOtpEmail(email, name, otp) {
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto;padding:24px;border:1px solid #e5e7eb;border-radius:12px">
+      <h2 style="color:#6366f1;margin-top:0">Verify your SkillPay account</h2>
+      <p>Hi <strong>${name}</strong>, welcome to SkillPay!</p>
+      <p>Use the OTP below to verify your email. It expires in <strong>10 minutes</strong>.</p>
+      <div style="font-size:36px;font-weight:bold;letter-spacing:12px;text-align:center;
+                  padding:20px;background:#f3f4f6;border-radius:8px;margin:20px 0;color:#111827">${otp}</div>
+      <p style="color:#6b7280;font-size:13px">If you did not sign up for SkillPay, you can safely ignore this email.</p>
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0"/>
+      <p style="color:#9ca3af;font-size:11px">SkillPay — India's Student Freelance Marketplace</p>
+    </div>
+  `;
+
+  sendEmail(email, 'Your SkillPay OTP Verification Code', html)
+    .then(() => console.log(`[Email] OTP sent to ${email}`))
+    .catch((err) => console.error(`[Email] Failed to send OTP to ${email}:`, err.message));
+}
+
+// @desc    Resend OTP to an unverified email
+// @route   POST /api/auth/resend-otp
+// @access  Public
+const resendOtp = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) return next(new ApiError(400, 'Email is required'));
+
+    const user = await User.findOne({ email });
+    if (!user)         return next(new ApiError(404, 'No account found with this email'));
+    if (user.emailVerified) {
+      return res.status(200).json({ success: true, message: 'Your email is already verified. Please sign in.' });
+    }
+
+    const { otp, otpExpiry } = generateOTP();
+    user.otp       = otp;
+    user.otpExpiry = otpExpiry;
+    await user.save({ validateBeforeSave: false });
+
+    _sendOtpEmail(user.email, user.name, otp);
+
+    return res.status(200).json({
+      success: true,
+      message: 'A new OTP has been sent to your email. Check your inbox and spam folder.',
     });
   } catch (error) {
     next(error);
@@ -376,4 +424,5 @@ module.exports = {
   resetPassword,
   updateProfile,
   getMe,
+  resendOtp,
 };

@@ -47,6 +47,9 @@ setIO(io);         // Also expose via singleton for controllers
 // Connect to MongoDB
 connectDB();
 
+// Pre-warm SMTP connection so first email is instant
+require('./utils/sendEmail').warmUp();
+
 // Bootstrap Bull job queue (order deadline auto-cancel)
 require('./jobs/orderDeadline.job');
 
