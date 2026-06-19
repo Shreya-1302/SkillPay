@@ -24,8 +24,12 @@ const Register = () => {
     setLoading(true);
     try {
       const data = await register(formData);
-      toast.success(data.message || 'Registration successful! Check your email for the OTP.');
-      navigate('/verify-email');
+      toast.success(data.message || 'Registration successful!');
+      if (data.emailVerified) {
+        navigate('/login');
+      } else {
+        navigate('/verify-email');
+      }
     } catch (err) {
       toast.error(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {

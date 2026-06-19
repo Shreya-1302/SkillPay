@@ -31,6 +31,7 @@ const register = async (req, res, next) => {
         await existingUser.save({ validateBeforeSave: false });
         return res.status(200).json({
           success: true,
+          emailVerified: true,
           message: 'Registration successful. [Demo mode] You can log in now.',
         });
       }
@@ -77,6 +78,7 @@ const register = async (req, res, next) => {
       console.log(`[Demo/DEV] Auto-verified ${user.email}.`);
       return res.status(201).json({
         success: true,
+        emailVerified: true,
         message: 'Registration successful. [Demo mode] You can log in now.',
       });
     }
