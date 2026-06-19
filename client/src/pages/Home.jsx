@@ -1198,7 +1198,66 @@ const Home = () => {
           text-decoration: none;
           transition: background 0.2s, border-color 0.2s;
         }
-        .home-cta-btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.5); }
+         .home-cta-btn-secondary:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.5); }
+
+        @media (max-width: 640px) {
+          .home-hero {
+            padding: 80px 16px 100px;
+            align-items: center;
+            text-align: center;
+          }
+          .home-hero-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+          }
+          .home-hero-title {
+            font-size: 2rem;
+            margin-bottom: 16px;
+          }
+          .home-hero-sub {
+            font-size: 0.95rem;
+            margin-bottom: 24px;
+            text-align: center;
+          }
+          .home-hero-search {
+            flex-direction: column;
+            border-radius: 20px;
+            padding: 12px;
+            gap: 10px;
+            width: 100%;
+          }
+          .home-hero-search-icon {
+            display: none;
+          }
+          .home-hero-search-input {
+            width: 100%;
+            text-align: center;
+            padding: 4px 0;
+          }
+          .home-hero-search-btn {
+            width: 100%;
+            justify-content: center;
+            padding: 10px 20px;
+          }
+          .home-cat-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+          }
+          .home-cat-card {
+            padding: 20px 12px;
+          }
+          .home-cat-icon-wrap {
+            width: 44px;
+            height: 44px;
+          }
+          .home-cat-name {
+            font-size: 0.75rem;
+          }
+          .home-testimonial-card {
+            padding: 24px 16px;
+          }
+        }
       `}</style>
     </div>
   );

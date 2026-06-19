@@ -105,7 +105,7 @@ const Profile = () => {
           </div>
 
           {/* ── Info cards ── */}
-          <div className="grid grid-cols-2 gap-4 px-6 py-4 border-b border-border/50">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-6 py-4 border-b border-border/50">
             <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/40">
               <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
               <div className="overflow-hidden">

@@ -185,7 +185,7 @@ const OrderDetail = () => {
         {/* ── Two Column Layout ── */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Left Column */}
-          <div className="md:col-span-2 space-y-6">
+          <div className="md:col-span-2 order-2 md:order-1 space-y-6">
             {/* Requirements */}
             <div className="bg-card border border-border/50 rounded-2xl p-6 shadow-sm">
               <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
@@ -316,7 +316,7 @@ const OrderDetail = () => {
           </div>
 
           {/* Right Column — Order Summary */}
-          <div className="space-y-6">
+          <div className="order-1 md:order-2 space-y-6">
             <div className="bg-card border border-border/50 rounded-2xl p-6 shadow-sm">
               <h3 className="font-bold mb-4">Order Summary</h3>
               <div className="space-y-3 text-sm">

@@ -72,58 +72,93 @@ const MyHires = () => {
                </Link>
              </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left">
-                <thead className="text-xs text-muted-foreground uppercase bg-secondary/30 border-b border-border/50">
-                  <tr>
-                    <th scope="col" className="px-6 py-4 font-medium">Project</th>
-                    <th scope="col" className="px-6 py-4 font-medium">Freelancer</th>
-                    <th scope="col" className="px-6 py-4 font-medium">Amount</th>
-                    <th scope="col" className="px-6 py-4 font-medium">Status</th>
-                    <th scope="col" className="px-6 py-4 font-medium">Date</th>
-                    <th scope="col" className="px-6 py-4 font-medium text-right">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/50">
-                  {orders?.map((order) => (
-                    <tr key={order._id} className="hover:bg-secondary/10 transition-colors">
-                      <td className="px-6 py-4 font-medium text-foreground">
-                        <div className="line-clamp-2 max-w-[250px]">
-                          {order.gig?.title || 'Unknown Gig'}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <img 
-                            src={order.student?.avatar || `https://ui-avatars.com/api/?name=${order.student?.name || 'S'}&background=random`} 
-                            alt=""
-                            className="h-6 w-6 rounded-full"
-                          />
-                          <span>{order.student?.name}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 font-medium">
-                        {formatINR(order.amount)}
-                      </td>
-                      <td className="px-6 py-4">
-                        {getStatusBadge(order.status)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
-                        {formatDate(order.createdAt)}
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <Link 
-                          to={`/orders/${order._id}`}
-                          className="text-primary hover:underline font-medium"
-                        >
-                          View Details
-                        </Link>
-                      </td>
+            <>
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-xs text-muted-foreground uppercase bg-secondary/30 border-b border-border/50">
+                    <tr>
+                      <th scope="col" className="px-6 py-4 font-medium">Project</th>
+                      <th scope="col" className="px-6 py-4 font-medium">Freelancer</th>
+                      <th scope="col" className="px-6 py-4 font-medium">Amount</th>
+                      <th scope="col" className="px-6 py-4 font-medium">Status</th>
+                      <th scope="col" className="px-6 py-4 font-medium">Date</th>
+                      <th scope="col" className="px-6 py-4 font-medium text-right">Action</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-border/50">
+                    {orders?.map((order) => (
+                      <tr key={order._id} className="hover:bg-secondary/10 transition-colors">
+                        <td className="px-6 py-4 font-medium text-foreground">
+                          <div className="line-clamp-2 max-w-[250px]">
+                            {order.gig?.title || 'Unknown Gig'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center gap-2">
+                            <img 
+                              src={order.student?.avatar || `https://ui-avatars.com/api/?name=${order.student?.name || 'S'}&background=random`} 
+                              alt=""
+                              className="h-6 w-6 rounded-full"
+                            />
+                            <span>{order.student?.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 font-medium">
+                          {formatINR(order.amount)}
+                        </td>
+                        <td className="px-6 py-4">
+                          {getStatusBadge(order.status)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-muted-foreground">
+                          {formatDate(order.createdAt)}
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <Link 
+                            to={`/orders/${order._id}`}
+                            className="text-primary hover:underline font-medium"
+                          >
+                            View Details
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="block md:hidden divide-y divide-border/50">
+                {orders?.map((order) => (
+                  <div key={order._id} className="p-4 space-y-3">
+                    <div className="flex justify-between items-start gap-2">
+                      <Link to={`/orders/${order._id}`} className="font-bold text-sm text-foreground hover:text-primary transition-colors line-clamp-2">
+                        {order.gig?.title || 'Unknown Gig'}
+                      </Link>
+                      {getStatusBadge(order.status)}
+                    </div>
+                    <div className="flex justify-between items-center text-xs text-muted-foreground border-y border-border/30 py-2">
+                      <div className="flex items-center gap-2">
+                        <img 
+                          src={order.student?.avatar || `https://ui-avatars.com/api/?name=${order.student?.name || 'S'}&background=random`} 
+                          alt=""
+                          className="h-5 w-5 rounded-full object-cover"
+                        />
+                        <span>{order.student?.name}</span>
+                      </div>
+                      <span>{formatDate(order.createdAt)}</span>
+                    </div>
+                    <div className="flex justify-between items-center pt-1">
+                      <span className="text-sm font-bold text-foreground">{formatINR(order.amount)}</span>
+                      <Link 
+                        to={`/orders/${order._id}`}
+                        className="text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-lg"
+                      >
+                        View Details
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </main>

@@ -206,56 +206,95 @@ const Wallet = () => {
             No transactions found.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="bg-muted/50 text-muted-foreground">
-                <tr>
-                  <th className="px-6 py-4 font-medium">Transaction</th>
-                  <th className="px-6 py-4 font-medium">Amount</th>
-                  <th className="px-6 py-4 font-medium">Date</th>
-                  <th className="px-6 py-4 font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {transactions.map((tx) => (
-                  <tr key={tx._id} className="hover:bg-muted/20 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-full shrink-0 ${tx.type.includes('DEBIT') ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
-                          {getTypeIcon(tx.type)}
+          <>
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-muted/50 text-muted-foreground">
+                  <tr>
+                    <th className="px-6 py-4 font-medium">Transaction</th>
+                    <th className="px-6 py-4 font-medium">Amount</th>
+                    <th className="px-6 py-4 font-medium">Date</th>
+                    <th className="px-6 py-4 font-medium">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {transactions.map((tx) => (
+                    <tr key={tx._id} className="hover:bg-muted/20 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-full shrink-0 ${tx.type.includes('DEBIT') ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
+                            {getTypeIcon(tx.type)}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-sm">
+                              {tx.type.includes('DEBIT') ? 'Withdrawal to UPI' : 'Milestone Earned'}
+                            </span>
+                            <span className="text-xs text-muted-foreground truncate max-w-[200px]">
+                              {tx.description || (tx.type.includes('DEBIT') ? 'Withdrawal' : 'Payment received')}
+                            </span>
+                          </div>
                         </div>
-                        <div className="flex flex-col">
-                          <span className="font-semibold text-sm">
-                            {tx.type.includes('DEBIT') ? 'Withdrawal to UPI' : 'Milestone Earned'}
-                          </span>
-                          <span className="text-xs text-muted-foreground truncate max-w-[200px]">
-                            {tx.description || (tx.type.includes('DEBIT') ? 'Withdrawal' : 'Payment received')}
-                          </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`font-semibold ${tx.type.includes('DEBIT') ? 'text-red-500' : 'text-green-500'}`}>
+                          {tx.type.includes('DEBIT') ? '-' : '+'}₹{tx.amount.toLocaleString()}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-muted-foreground">
+                        {new Date(tx.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-1.5">
+                          {getStatusIcon(tx.status)}
+                          <span className="capitalize">{tx.status}</span>
                         </div>
+                        {tx.status === 'processing' && (
+                          <p className="text-[10px] text-muted-foreground mt-1">Usually completes within 24 hours</p>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="block md:hidden divide-y divide-border">
+              {transactions.map((tx) => (
+                <div key={tx._id} className="p-4 space-y-2 hover:bg-muted/10 transition-colors">
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-2">
+                      <div className={`p-1.5 rounded-full shrink-0 ${tx.type.includes('DEBIT') ? 'bg-red-500/10' : 'bg-green-500/10'}`}>
+                        {getTypeIcon(tx.type)}
                       </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`font-semibold ${tx.type.includes('DEBIT') ? 'text-red-500' : 'text-green-500'}`}>
-                        {tx.type.includes('DEBIT') ? '-' : '+'}₹{tx.amount.toLocaleString()}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-muted-foreground">
-                      {new Date(tx.createdAt).toLocaleDateString()}
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1.5">
+                      <div>
+                        <p className="font-semibold text-sm text-foreground">
+                          {tx.type.includes('DEBIT') ? 'Withdrawal to UPI' : 'Milestone Earned'}
+                        </p>
+                        <p className="text-xs text-muted-foreground truncate max-w-[180px]">
+                          {tx.description || (tx.type.includes('DEBIT') ? 'Withdrawal' : 'Payment received')}
+                        </p>
+                      </div>
+                    </div>
+                    <span className={`text-sm font-bold ${tx.type.includes('DEBIT') ? 'text-red-500' : 'text-green-500'}`}>
+                      {tx.type.includes('DEBIT') ? '-' : '+'}₹{tx.amount.toLocaleString()}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-xs pt-1">
+                    <span className="text-muted-foreground">{new Date(tx.createdAt).toLocaleDateString()}</span>
+                    <div className="flex flex-col items-end">
+                      <div className="flex items-center gap-1">
                         {getStatusIcon(tx.status)}
-                        <span className="capitalize">{tx.status}</span>
+                        <span className="capitalize font-medium text-foreground">{tx.status}</span>
                       </div>
                       {tx.status === 'processing' && (
-                        <p className="text-[10px] text-muted-foreground mt-1">Usually completes within 24 hours</p>
+                        <span className="text-[9px] text-muted-foreground">Takes up to 24h</span>
                       )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

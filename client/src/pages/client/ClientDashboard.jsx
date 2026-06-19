@@ -330,7 +330,7 @@ const ClientDashboard = () => {
                   ))}
                 </div>
 
-                <div className="cd-table-wrap">
+                <div className="cd-table-wrap hidden md:block">
                   <table className="cd-table">
                     <thead>
                       <tr>
@@ -391,6 +391,47 @@ const ClientDashboard = () => {
                     <div className="cd-table-empty">
                       <Package className="w-8 h-8 opacity-30" />
                       <p>No orders in this category</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="cd-cards-wrap block md:hidden divide-y divide-border/20">
+                  {tabOrders.slice(0, 10).map((order, idx) => (
+                    <motion.div
+                      key={order._id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.03 }}
+                      className="p-4 space-y-3"
+                    >
+                      <div className="flex justify-between items-start gap-2">
+                        <Link to={`/orders/${order._id}`} className="font-semibold text-sm hover:text-primary transition-colors line-clamp-2 text-foreground">
+                          {order.gig?.title || 'Unknown Gig'}
+                        </Link>
+                        <StatusBadge status={order.status} />
+                      </div>
+                      <div className="flex justify-between items-center text-xs text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={order.student?.avatar || `https://ui-avatars.com/api/?name=${order.student?.name || 'S'}&background=8b5cf6&color=fff`}
+                            alt=""
+                            className="w-5 h-5 rounded-full object-cover border border-border"
+                          />
+                          <span>{order.student?.name}</span>
+                        </div>
+                        <span>{formatDate(order.createdAt)}</span>
+                      </div>
+                      <div className="flex justify-between items-center pt-2">
+                        <span className="text-sm font-bold text-foreground">{formatINR(order.amount)}</span>
+                        <Link to={`/orders/${order._id}`} className="text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-lg flex items-center gap-1">
+                          Details <ChevronRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
+                    </motion.div>
+                  ))}
+                  {tabOrders.length === 0 && (
+                    <div className="p-8 text-center text-muted-foreground text-sm">
+                      No orders in this category.
                     </div>
                   )}
                 </div>

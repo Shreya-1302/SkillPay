@@ -153,76 +153,125 @@ const AdminDisputes = () => {
               <p className="text-sm mt-1">All orders are running smoothly.</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-secondary/50 text-xs text-muted-foreground uppercase tracking-wider">
-                  <tr>
-                    <th className="p-4 font-medium">Order ID</th>
-                    <th className="p-4 font-medium">Gig</th>
-                    <th className="p-4 font-medium">Student</th>
-                    <th className="p-4 font-medium">Client</th>
-                    <th className="p-4 font-medium">Amount</th>
-                    <th className="p-4 font-medium">Raised</th>
-                    <th className="p-4 font-medium text-center">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/50">
-                  {disputes.map((order) => (
-                    <motion.tr
-                      key={order._id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      onClick={() => setSelectedOrder(order)}
-                      className="hover:bg-amber-500/5 transition-colors cursor-pointer"
-                    >
-                      <td className="p-4">
-                        <span className="font-mono text-sm text-muted-foreground">
-                          #{order._id.substring(0, 8)}
-                        </span>
-                      </td>
-                      <td className="p-4 text-sm font-medium max-w-[180px] truncate">
-                        {order.gig?.title || '—'}
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <div className="h-7 w-7 rounded-full bg-secondary overflow-hidden shrink-0">
-                            <img
-                              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(order.student?.name || 'S')}&background=random`}
-                              alt=""
-                              className="h-full w-full object-cover"
-                            />
+            <>
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-secondary/50 text-xs text-muted-foreground uppercase tracking-wider">
+                    <tr>
+                      <th className="p-4 font-medium">Order ID</th>
+                      <th className="p-4 font-medium">Gig</th>
+                      <th className="p-4 font-medium">Student</th>
+                      <th className="p-4 font-medium">Client</th>
+                      <th className="p-4 font-medium">Amount</th>
+                      <th className="p-4 font-medium">Raised</th>
+                      <th className="p-4 font-medium text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/50">
+                    {disputes.map((order) => (
+                      <motion.tr
+                        key={order._id}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        onClick={() => setSelectedOrder(order)}
+                        className="hover:bg-amber-500/5 transition-colors cursor-pointer"
+                      >
+                        <td className="p-4">
+                          <span className="font-mono text-sm text-muted-foreground">
+                            #{order._id.substring(0, 8)}
+                          </span>
+                        </td>
+                        <td className="p-4 text-sm font-medium max-w-[180px] truncate">
+                          {order.gig?.title || '—'}
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <div className="h-7 w-7 rounded-full bg-secondary overflow-hidden shrink-0">
+                              <img
+                                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(order.student?.name || 'S')}&background=random`}
+                                alt=""
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                            <span className="text-sm">{order.student?.name}</span>
                           </div>
-                          <span className="text-sm">{order.student?.name}</span>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <div className="h-7 w-7 rounded-full bg-secondary overflow-hidden shrink-0">
-                            <img
-                              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(order.client?.name || 'C')}&background=random`}
-                              alt=""
-                              className="h-full w-full object-cover"
-                            />
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            <div className="h-7 w-7 rounded-full bg-secondary overflow-hidden shrink-0">
+                              <img
+                                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(order.client?.name || 'C')}&background=random`}
+                                alt=""
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                            <span className="text-sm">{order.client?.name}</span>
                           </div>
-                          <span className="text-sm">{order.client?.name}</span>
+                        </td>
+                        <td className="p-4 font-bold text-amber-400">{formatINR(order.amount)}</td>
+                        <td className="p-4 text-sm text-muted-foreground">{formatDate(order.updatedAt)}</td>
+                        <td className="p-4 text-center">
+                          <button
+                            id={`open-dispute-${order._id}`}
+                            onClick={(e) => { e.stopPropagation(); setSelectedOrder(order); }}
+                            className="px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 rounded-lg text-xs font-semibold transition-colors"
+                          >
+                            Resolve
+                          </button>
+                        </td>
+                      </motion.tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="block md:hidden divide-y divide-border/50">
+                {disputes.map((order) => (
+                  <div
+                    key={order._id}
+                    onClick={() => setSelectedOrder(order)}
+                    className="p-4 space-y-3 hover:bg-amber-500/5 transition-colors cursor-pointer"
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <div>
+                        <span className="font-mono text-xs text-muted-foreground">Order #{order._id.substring(0, 8)}</span>
+                        <p className="font-semibold text-sm text-foreground line-clamp-2 mt-1">
+                          {order.gig?.title || '—'}
+                        </p>
+                      </div>
+                      <span className="text-sm font-bold text-amber-400">{formatINR(order.amount)}</span>
+                    </div>
+
+                    <div className="flex justify-between items-center text-xs border-t border-border/30 pt-2.5">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] text-muted-foreground w-12">Student:</span>
+                          <span className="font-medium text-foreground">{order.student?.name}</span>
                         </div>
-                      </td>
-                      <td className="p-4 font-bold text-amber-400">{formatINR(order.amount)}</td>
-                      <td className="p-4 text-sm text-muted-foreground">{formatDate(order.updatedAt)}</td>
-                      <td className="p-4 text-center">
-                        <button
-                          id={`open-dispute-${order._id}`}
-                          onClick={(e) => { e.stopPropagation(); setSelectedOrder(order); }}
-                          className="px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 rounded-lg text-xs font-semibold transition-colors"
-                        >
-                          Resolve
-                        </button>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] text-muted-foreground w-12">Client:</span>
+                          <span className="font-medium text-foreground">{order.client?.name}</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] text-muted-foreground block">Raised On</span>
+                        <span className="font-medium text-foreground">{formatDate(order.updatedAt)}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end pt-1">
+                      <button
+                        id={`open-dispute-mobile-${order._id}`}
+                        onClick={(e) => { e.stopPropagation(); setSelectedOrder(order); }}
+                        className="px-4 py-2 bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 rounded-lg text-xs font-semibold transition-colors"
+                      >
+                        Resolve Dispute
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </main>

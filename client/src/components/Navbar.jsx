@@ -135,7 +135,8 @@ const Navbar = () => {
             )}
           </div>
 
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center gap-2">
+            {user && <NotificationBell />}
             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 text-muted-foreground">
               {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -163,13 +164,27 @@ const Navbar = () => {
             
             {user ? (
               <>
-                <Link to="/profile" onClick={() => setIsMenuOpen(false)} className="px-2 py-2 text-sm font-medium text-foreground">Profile</Link>
                 {user.role === 'student' && (
                   <>
+                    <Link to="/student-dashboard" onClick={() => setIsMenuOpen(false)} className="px-2 py-2 text-sm font-medium text-foreground">Dashboard</Link>
                     <Link to="/student/my-gigs" onClick={() => setIsMenuOpen(false)} className="px-2 py-2 text-sm font-medium text-foreground">My Gigs</Link>
                     <Link to="/student/wallet" onClick={() => setIsMenuOpen(false)} className="px-2 py-2 text-sm font-medium text-foreground">Wallet</Link>
                   </>
                 )}
+                {user.role === 'client' && (
+                  <>
+                    <Link to="/dashboard" onClick={() => setIsMenuOpen(false)} className="px-2 py-2 text-sm font-medium text-foreground">Dashboard</Link>
+                    <Link to="/client/my-hires" onClick={() => setIsMenuOpen(false)} className="px-2 py-2 text-sm font-medium text-foreground">My Hires</Link>
+                  </>
+                )}
+                {user.role === 'admin' && (
+                  <>
+                    <Link to="/admin-dashboard" onClick={() => setIsMenuOpen(false)} className="px-2 py-2 text-sm font-medium text-foreground">Dashboard</Link>
+                    <Link to="/admin/users" onClick={() => setIsMenuOpen(false)} className="px-2 py-2 text-sm font-medium text-foreground">Users</Link>
+                    <Link to="/admin/disputes" onClick={() => setIsMenuOpen(false)} className="px-2 py-2 text-sm font-medium text-foreground">Disputes</Link>
+                  </>
+                )}
+                <Link to="/profile" onClick={() => setIsMenuOpen(false)} className="px-2 py-2 text-sm font-medium text-foreground">Profile</Link>
                 <button onClick={handleLogout} className="text-left px-2 py-2 text-sm font-medium text-destructive">Logout</button>
               </>
             ) : (

@@ -83,7 +83,7 @@ const GigDetail = () => {
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
 
-      <main className="flex-1 container mx-auto px-4 py-8 max-w-6xl">
+      <main className="flex-1 container mx-auto px-4 pt-8 pb-24 lg:pb-8 max-w-6xl">
         <div className="mb-6">
           <button
             onClick={() => navigate(-1)}
@@ -344,6 +344,36 @@ const GigDetail = () => {
           />
         </div>
       </Modal>
+
+      {/* Sticky Bottom Bar for Mobile */}
+      {!isOwner && gig.status === 'active' && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border/80 px-6 py-4 flex items-center justify-between z-40 shadow-[0_-4px_12px_rgba(0,0,0,0.15)] backdrop-blur supports-[backdrop-filter]:bg-card/90">
+          <div>
+            <p className="text-xs text-muted-foreground">Base Price</p>
+            <p className="text-xl font-bold text-primary">{formatINR(gig.basePrice)}</p>
+          </div>
+          <button
+            onClick={() => setIsHireModalOpen(true)}
+            className="bg-primary text-primary-foreground px-6 py-2.5 rounded-full font-bold text-sm hover:bg-primary/90 transition-colors shadow-md"
+          >
+            Hire Now
+          </button>
+        </div>
+      )}
+      {isOwner && (
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-card border-t border-border/80 px-6 py-4 flex items-center justify-between z-40 shadow-[0_-4px_12px_rgba(0,0,0,0.15)] backdrop-blur supports-[backdrop-filter]:bg-card/90">
+          <div>
+            <p className="text-xs text-muted-foreground">Base Price</p>
+            <p className="text-xl font-bold text-primary">{formatINR(gig.basePrice)}</p>
+          </div>
+          <Link
+            to={`/student/edit-gig/${gig._id}`}
+            className="bg-secondary text-secondary-foreground px-6 py-2.5 rounded-full font-bold text-sm hover:bg-secondary/80 transition-colors shadow-md"
+          >
+            Edit Service
+          </Link>
+        </div>
+      )}
 
       <Footer />
     </div>

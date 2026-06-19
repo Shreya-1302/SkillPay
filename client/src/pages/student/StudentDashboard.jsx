@@ -363,55 +363,93 @@ const StudentDashboard = () => {
                 <p className="sd-table-empty-sub">When clients hire you, their orders will appear here.</p>
               </div>
             ) : (
-              <div className="sd-table-wrap">
-                <table className="sd-table">
-                  <thead>
-                    <tr>
-                      <th>Gig</th>
-                      <th>Client</th>
-                      <th>Date</th>
-                      <th>Amount</th>
-                      <th>Status</th>
-                      <th></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentOrders.map((order, idx) => (
-                      <motion.tr
-                        key={order._id}
-                        initial={{ opacity: 0, x: -10 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: idx * 0.04 }}
-                        className="sd-table-row"
-                      >
-                        <td>
-                          <Link to={`/orders/${order._id}`} className="sd-table-gig-link">
-                            {order.gig?.title || 'Unknown Gig'}
-                          </Link>
-                        </td>
-                        <td>
-                          <div className="sd-table-client">
-                            <img
-                              src={order.client?.avatar || `https://ui-avatars.com/api/?name=${order.client?.name || 'C'}&background=6366f1&color=fff`}
-                              alt=""
-                              className="sd-table-avatar"
-                            />
-                            <span>{order.client?.name}</span>
-                          </div>
-                        </td>
-                        <td className="sd-table-date">{formatDate(order.createdAt)}</td>
-                        <td className="sd-table-amount">{formatINR(order.amount)}</td>
-                        <td><StatusBadge status={order.status} /></td>
-                        <td>
-                          <Link to={`/orders/${order._id}`} className="sd-table-detail-btn">
-                            <ChevronRight className="w-4 h-4" />
-                          </Link>
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+              <>
+                <div className="sd-table-wrap hidden md:block">
+                  <table className="sd-table">
+                    <thead>
+                      <tr>
+                        <th>Gig</th>
+                        <th>Client</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentOrders.map((order, idx) => (
+                        <motion.tr
+                          key={order._id}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.04 }}
+                          className="sd-table-row"
+                        >
+                          <td>
+                            <Link to={`/orders/${order._id}`} className="sd-table-gig-link">
+                              {order.gig?.title || 'Unknown Gig'}
+                            </Link>
+                          </td>
+                          <td>
+                            <div className="sd-table-client">
+                              <img
+                                src={order.client?.avatar || `https://ui-avatars.com/api/?name=${order.client?.name || 'C'}&background=6366f1&color=fff`}
+                                alt=""
+                                className="sd-table-avatar"
+                              />
+                              <span>{order.client?.name}</span>
+                            </div>
+                          </td>
+                          <td className="sd-table-date">{formatDate(order.createdAt)}</td>
+                          <td className="sd-table-amount">{formatINR(order.amount)}</td>
+                          <td><StatusBadge status={order.status} /></td>
+                          <td>
+                            <Link to={`/orders/${order._id}`} className="sd-table-detail-btn">
+                              <ChevronRight className="w-4 h-4" />
+                            </Link>
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="sd-cards-wrap block md:hidden divide-y divide-border/20">
+                  {recentOrders.map((order, idx) => (
+                    <motion.div
+                      key={order._id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.04 }}
+                      className="p-4 space-y-3"
+                    >
+                      <div className="flex justify-between items-start gap-2">
+                        <Link to={`/orders/${order._id}`} className="font-semibold text-sm hover:text-primary transition-colors line-clamp-2 text-foreground">
+                          {order.gig?.title || 'Unknown Gig'}
+                        </Link>
+                        <StatusBadge status={order.status} />
+                      </div>
+                      <div className="flex justify-between items-center text-xs text-muted-foreground">
+                        <div className="flex items-center gap-2">
+                          <img
+                            src={order.client?.avatar || `https://ui-avatars.com/api/?name=${order.client?.name || 'C'}&background=6366f1&color=fff`}
+                            alt=""
+                            className="w-5 h-5 rounded-full object-cover border border-border"
+                          />
+                          <span>{order.client?.name}</span>
+                        </div>
+                        <span>{formatDate(order.createdAt)}</span>
+                      </div>
+                      <div className="flex justify-between items-center pt-2">
+                        <span className="text-sm font-bold text-foreground">{formatINR(order.amount)}</span>
+                        <Link to={`/orders/${order._id}`} className="text-xs font-semibold text-primary bg-primary/10 px-3 py-1.5 rounded-lg flex items-center gap-1">
+                          Manage <ChevronRight className="w-3.5 h-3.5" />
+                        </Link>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
 

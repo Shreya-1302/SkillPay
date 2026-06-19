@@ -245,7 +245,7 @@ const MilestoneCard = ({ milestone, orderId, role }) => {
       {expanded && (
         <div className="border-t border-border/30 px-4 pb-4 pt-3 space-y-3">
           {/* Commission breakdown */}
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             {[
               { icon: DollarSign, label: 'Milestone', value: formatINR(milestone.amount), color: 'text-foreground' },
               { icon: Percent, label: 'Platform (8%)', value: `-${formatINR(platformFee)}`, color: 'text-red-400' },

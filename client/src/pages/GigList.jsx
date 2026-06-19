@@ -243,9 +243,18 @@ const GigList = () => {
                       <span className="gl-sidebar-badge">{activeCount} active</span>
                     )}
                   </div>
-                  {activeCount > 0 && (
-                    <button onClick={clearFilters} className="gl-sidebar-clear">Clear all</button>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {activeCount > 0 && (
+                      <button onClick={clearFilters} className="gl-sidebar-clear">Clear all</button>
+                    )}
+                    <button
+                      onClick={() => setIsFilterOpen(false)}
+                      className="md:hidden p-1 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary/45 transition-colors"
+                      aria-label="Close filters"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
 
                 {/* ─ Category ─ */}

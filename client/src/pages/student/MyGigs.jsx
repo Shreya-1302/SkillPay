@@ -102,7 +102,7 @@ const MyGigs = () => {
           </div>
         ) : (
           <div className="bg-card border border-border/50 rounded-xl overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-secondary/50 border-b border-border/50 text-muted-foreground text-sm uppercase tracking-wider">
@@ -184,6 +184,78 @@ const MyGigs = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            <div className="block md:hidden divide-y divide-border/50">
+              {gigs.map((gig) => (
+                <div key={gig._id} className="p-4 space-y-4">
+                  <div className="flex gap-4">
+                    <div className="h-16 w-20 rounded bg-secondary overflow-hidden shrink-0">
+                      <img src={gig.portfolioImages?.[0] || `https://ui-avatars.com/api/?name=${encodeURIComponent(gig.title)}&size=64&background=random`} alt="" className="h-full w-full object-cover" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <Link to={`/gigs/${gig._id}`} className="font-bold text-sm text-foreground hover:text-primary transition-colors line-clamp-2">
+                        {gig.title}
+                      </Link>
+                      <span className="text-xs text-muted-foreground block mt-1">{gig.category}</span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-xs border-y border-border/30 py-2">
+                    <div>
+                      <span className="text-muted-foreground block">Price</span>
+                      <span className="font-semibold text-foreground">{formatINR(gig.basePrice)}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block">Orders</span>
+                      <span className="font-semibold text-foreground">{gig.totalOrders || 0}</span>
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block">Rating</span>
+                      {gig.avgRating > 0 ? (
+                        <span className="font-semibold text-yellow-500">★ {gig.avgRating}</span>
+                      ) : (
+                        <Badge variant="success" className="bg-green-500/10 text-green-500 border-green-500/20 px-2 py-0.5 text-xs">New</Badge>
+                      )}
+                    </div>
+                    <div>
+                      <span className="text-muted-foreground block">Status</span>
+                      {gig.status === 'active' ? (
+                        <Badge variant="success">Active</Badge>
+                      ) : (
+                        <Badge variant="warning">Paused</Badge>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2">
+                    <Link 
+                      to={`/gigs/${gig._id}`}
+                      className="px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground border border-border/50 rounded-lg flex items-center gap-1.5 transition-colors"
+                    >
+                      <Eye size={14} /> View
+                    </Link>
+                    <Link 
+                      to={`/student/edit-gig/${gig._id}`}
+                      className="px-2.5 py-1.5 text-xs text-primary bg-primary/10 rounded-lg flex items-center gap-1.5 transition-colors"
+                    >
+                      <Edit2 size={14} /> Edit
+                    </Link>
+                    <button 
+                      onClick={() => toggleStatus({ id: gig._id, status: gig.status === 'active' ? 'paused' : 'active' })}
+                      className="px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground border border-border/50 rounded-lg flex items-center gap-1.5 transition-colors"
+                    >
+                      {gig.status === 'active' ? <><PauseCircle size={14} /> Pause</> : <><PlayCircle size={14} /> Resume</>}
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteClick(gig._id)}
+                      className="px-2.5 py-1.5 text-xs text-destructive bg-destructive/10 rounded-lg flex items-center gap-1.5 transition-colors"
+                    >
+                      <Trash2 size={14} /> Delete
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

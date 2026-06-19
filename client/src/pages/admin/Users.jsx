@@ -105,65 +105,128 @@ const AdminUsers = () => {
               <p className="font-medium">No users found</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead className="bg-secondary/50 text-xs text-muted-foreground uppercase tracking-wider">
-                  <tr>
-                    <th className="p-4 font-medium">User</th>
-                    <th className="p-4 font-medium">Email</th>
-                    <th className="p-4 font-medium">Role</th>
-                    <th className="p-4 font-medium">Joined</th>
-                    <th className="p-4 font-medium text-center">Status</th>
-                    <th className="p-4 font-medium text-center">Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/50">
-                  <AnimatePresence>
-                    {filtered.map((u) => (
-                      <motion.tr
-                        key={u._id}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="hover:bg-secondary/20 transition-colors"
-                      >
-                        {/* Avatar + Name */}
-                        <td className="p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-full bg-secondary overflow-hidden shrink-0">
-                              <img
-                                src={u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'U')}&background=random`}
-                                alt={u.name}
-                                className="h-full w-full object-cover"
-                              />
+            <>
+              <div className="hidden md:block overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead className="bg-secondary/50 text-xs text-muted-foreground uppercase tracking-wider">
+                    <tr>
+                      <th className="p-4 font-medium">User</th>
+                      <th className="p-4 font-medium">Email</th>
+                      <th className="p-4 font-medium">Role</th>
+                      <th className="p-4 font-medium">Joined</th>
+                      <th className="p-4 font-medium text-center">Status</th>
+                      <th className="p-4 font-medium text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/50">
+                    <AnimatePresence>
+                      {filtered.map((u) => (
+                        <motion.tr
+                          key={u._id}
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="hover:bg-secondary/20 transition-colors"
+                        >
+                          {/* Avatar + Name */}
+                          <td className="p-4">
+                            <div className="flex items-center gap-3">
+                              <div className="h-9 w-9 rounded-full bg-secondary overflow-hidden shrink-0">
+                                <img
+                                  src={u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'U')}&background=random`}
+                                  alt={u.name}
+                                  className="h-full w-full object-cover"
+                                />
+                              </div>
+                              <span className="font-medium text-sm">{u.name}</span>
                             </div>
-                            <span className="font-medium text-sm">{u.name}</span>
+                          </td>
+
+                          {/* Email */}
+                          <td className="p-4 text-sm text-muted-foreground">{u.email}</td>
+
+                          {/* Role */}
+                          <td className="p-4"><RoleBadge role={u.role} /></td>
+
+                          {/* Joined */}
+                          <td className="p-4 text-sm text-muted-foreground">{formatDate(u.createdAt)}</td>
+
+                          {/* Ban status */}
+                          <td className="p-4 text-center">
+                            {u.isBanned ? (
+                              <Badge variant="destructive" className="gap-1"><Ban className="h-3 w-3" />Banned</Badge>
+                            ) : (
+                              <Badge variant="success" className="gap-1"><CheckCircle2 className="h-3 w-3" />Active</Badge>
+                            )}
+                          </td>
+
+                          {/* Toggle ban action */}
+                          <td className="p-4 text-center">
+                            {u.role !== 'admin' && (
+                              <button
+                                id={`ban-toggle-${u._id}`}
+                                onClick={() => banMutation.mutate({ id: u._id, isBanned: !u.isBanned })}
+                                disabled={pendingId === u._id}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 ${
+                                  u.isBanned
+                                    ? 'bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20'
+                                    : 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20'
+                                }`}
+                              >
+                                {pendingId === u._id ? <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" /> : u.isBanned ? 'Unban' : 'Ban'}
+                              </button>
+                            )}
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </AnimatePresence>
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="block md:hidden divide-y divide-border/50">
+                <AnimatePresence>
+                  {filtered.map((u) => (
+                    <motion.div
+                      key={u._id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="p-4 space-y-3"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-full bg-secondary overflow-hidden shrink-0">
+                            <img
+                              src={u.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.name || 'U')}&background=random`}
+                              alt={u.name}
+                              className="h-full w-full object-cover"
+                            />
                           </div>
-                        </td>
+                          <div>
+                            <p className="font-bold text-sm text-foreground">{u.name}</p>
+                            <p className="text-xs text-muted-foreground">{u.email}</p>
+                          </div>
+                        </div>
+                        <RoleBadge role={u.role} />
+                      </div>
 
-                        {/* Email */}
-                        <td className="p-4 text-sm text-muted-foreground">{u.email}</td>
-
-                        {/* Role */}
-                        <td className="p-4"><RoleBadge role={u.role} /></td>
-
-                        {/* Joined */}
-                        <td className="p-4 text-sm text-muted-foreground">{formatDate(u.createdAt)}</td>
-
-                        {/* Ban status */}
-                        <td className="p-4 text-center">
-                          {u.isBanned ? (
-                            <Badge variant="destructive" className="gap-1"><Ban className="h-3 w-3" />Banned</Badge>
-                          ) : (
-                            <Badge variant="success" className="gap-1"><CheckCircle2 className="h-3 w-3" />Active</Badge>
-                          )}
-                        </td>
-
-                        {/* Toggle ban action */}
-                        <td className="p-4 text-center">
+                      <div className="flex justify-between items-center text-xs border-t border-border/30 pt-2.5">
+                        <div>
+                          <span className="text-muted-foreground block text-[10px]">Joined</span>
+                          <span className="font-medium text-foreground">{formatDate(u.createdAt)}</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div>
+                            {u.isBanned ? (
+                              <Badge variant="destructive" className="gap-1"><Ban className="h-3 w-3" />Banned</Badge>
+                            ) : (
+                              <Badge variant="success" className="gap-1"><CheckCircle2 className="h-3 w-3" />Active</Badge>
+                            )}
+                          </div>
                           {u.role !== 'admin' && (
                             <button
-                              id={`ban-toggle-${u._id}`}
+                              id={`ban-toggle-mobile-${u._id}`}
                               onClick={() => banMutation.mutate({ id: u._id, isBanned: !u.isBanned })}
                               disabled={pendingId === u._id}
                               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors disabled:opacity-50 ${
@@ -175,13 +238,13 @@ const AdminUsers = () => {
                               {pendingId === u._id ? <div className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent mx-auto" /> : u.isBanned ? 'Unban' : 'Ban'}
                             </button>
                           )}
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </AnimatePresence>
-                </tbody>
-              </table>
-            </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+            </>
           )}
 
           {/* ── Pagination ── */}

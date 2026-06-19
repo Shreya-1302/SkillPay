@@ -80,7 +80,7 @@ const NotificationBell = () => {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-card border border-border rounded-lg shadow-lg z-50">
+        <div className="absolute right-0 mt-2 w-[calc(100vw-32px)] sm:w-80 max-h-96 overflow-y-auto bg-card border border-border rounded-lg shadow-lg z-50">
           <div className="p-3 border-b border-border flex justify-between items-center bg-muted/30">
             <h3 className="font-semibold text-sm">Notifications</h3>
             {notifications.length > 0 && (
