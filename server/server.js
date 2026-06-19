@@ -89,6 +89,7 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     emailConfigured: !!(process.env.EMAIL_USER && process.env.EMAIL_PASS),
     emailUser: process.env.EMAIL_USER ? process.env.EMAIL_USER.replace(/(.{3}).*(@.*)/, '$1***$2') : 'NOT SET',
+    emailVerificationDisabled: process.env.DISABLE_EMAIL_VERIFICATION === 'true',
     mongoConnected: require('mongoose').connection.readyState === 1,
     node: process.version,
   });

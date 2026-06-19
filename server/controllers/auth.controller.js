@@ -24,6 +24,16 @@ const register = async (req, res, next) => {
         // Fully registered — tell the user to just log in
         return next(new ApiError(400, 'An account with this email already exists. Please sign in.'));
       }
+      if (process.env.DISABLE_EMAIL_VERIFICATION === 'true') {
+        existingUser.emailVerified = true;
+        existingUser.otp = undefined;
+        existingUser.otpExpiry = undefined;
+        await existingUser.save({ validateBeforeSave: false });
+        return res.status(200).json({
+          success: true,
+          message: 'Registration successful. [Demo mode] You can log in now.',
+        });
+      }
       // Unverified user (e.g., previous registration timed out before OTP arrived).
       // Refresh their OTP and resend the email so they can complete sign-up.
       const { otp, otpExpiry } = generateOTP();
@@ -58,16 +68,16 @@ const register = async (req, res, next) => {
       otpExpiry,
     });
 
-    // Dev mode: no email credentials → auto-verify immediately
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    // Dev/Demo mode: no email credentials OR DISABLE_EMAIL_VERIFICATION is true -> auto-verify immediately
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS || process.env.DISABLE_EMAIL_VERIFICATION === 'true') {
       user.emailVerified = true;
       user.otp           = undefined;
       user.otpExpiry     = undefined;
       await user.save({ validateBeforeSave: false });
-      console.log(`[DEV] Auto-verified ${user.email}. OTP was: ${otp}`);
+      console.log(`[Demo/DEV] Auto-verified ${user.email}.`);
       return res.status(201).json({
         success: true,
-        message: 'Registration successful. [DEV mode] You can log in now.',
+        message: 'Registration successful. [Demo mode] You can log in now.',
       });
     }
 
@@ -116,6 +126,17 @@ const resendOtp = async (req, res, next) => {
     if (!user)         return next(new ApiError(404, 'No account found with this email'));
     if (user.emailVerified) {
       return res.status(200).json({ success: true, message: 'Your email is already verified. Please sign in.' });
+    }
+
+    if (process.env.DISABLE_EMAIL_VERIFICATION === 'true') {
+      user.emailVerified = true;
+      user.otp = undefined;
+      user.otpExpiry = undefined;
+      await user.save({ validateBeforeSave: false });
+      return res.status(200).json({
+        success: true,
+        message: 'Your account has been automatically verified. [Demo mode] Please sign in.',
+      });
     }
 
     const { otp, otpExpiry } = generateOTP();
@@ -274,6 +295,12 @@ const forgotPassword = async (req, res, next) => {
     `;
 
     try {
+      if (process.env.DISABLE_EMAIL_VERIFICATION === 'true') {
+        return res.status(200).json({
+          success: true,
+          message: `OTP generated. [Demo mode: use OTP ${otp} to reset your password]`,
+        });
+      }
       await sendEmail(user.email, 'Password Reset OTP', message);
       res.status(200).json({
         success: true,
