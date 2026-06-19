@@ -38,7 +38,9 @@ const VerifyEmail = () => {
           Verify your email
         </h2>
         <p className="mt-2 text-center text-sm text-muted-foreground">
-          We've sent a 6-digit code to your email
+          We've sent a 6-digit OTP to your email address.
+          <br />
+          <span className="text-yellow-500 font-medium">Check your spam / junk folder</span> if it doesn't arrive within a minute.
         </p>
       </div>
 

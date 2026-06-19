@@ -30,49 +30,62 @@ const register = async (req, res, next) => {
     // Generate OTP
     const { otp, otpExpiry } = generateOTP();
 
-    // Create user
+    // Create user (not yet verified)
     const user = await User.create({
       name,
       email,
       collegeEmail,
       passwordHash,
-      role: role || 'user',
+      role: role || 'client',
       otp,
       otpExpiry,
     });
 
-    // Send OTP via email
-    const message = `
-      <h1>Email Verification</h1>
-      <p>Please use the following OTP to verify your email address. It is valid for 10 minutes.</p>
-      <h2>${otp}</h2>
-    `;
-
-    try {
-      if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-        await sendEmail(user.email, 'Verify your Email Address', message);
-      } else {
-        // Dev mode: auto-verify and log OTP to console
-        user.emailVerified = true;
-        user.otp = undefined;
-        user.otpExpiry = undefined;
-        await user.save({ validateBeforeSave: false });
-        console.log(`[DEV MODE] Auto-verified ${user.email}. OTP was: ${otp}`);
-      }
-      res.status(201).json({
-        success: true,
-        message: 'Registration successful. Please check your email for OTP.',
-      });
-    } catch (err) {
+    // Dev mode: auto-verify when no email credentials are configured
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      user.emailVerified = true;
       user.otp = undefined;
       user.otpExpiry = undefined;
       await user.save({ validateBeforeSave: false });
-      return next(new ApiError(500, 'Email could not be sent'));
+      console.log(`[DEV] Auto-verified ${user.email}. OTP was: ${otp}`);
+      return res.status(201).json({
+        success: true,
+        message: 'Registration successful. [DEV] Email auto-verified — you can log in now.',
+      });
     }
+
+    // Send OTP via email — fire asynchronously so the API responds fast.
+    // If email fails we still keep the user registered and advise them to resend.
+    const message = `
+      <div style="font-family:Arial,sans-serif;max-width:480px;margin:auto">
+        <h2 style="color:#6366f1">Verify your SkillPay account</h2>
+        <p>Hi ${name}, welcome to SkillPay!</p>
+        <p>Use the OTP below to verify your email address. It expires in <strong>10 minutes</strong>.</p>
+        <div style="font-size:32px;font-weight:bold;letter-spacing:8px;text-align:center;padding:16px;background:#f3f4f6;border-radius:8px;margin:16px 0">${otp}</div>
+        <p>If you did not create a SkillPay account, please ignore this email.</p>
+        <hr/><p style="color:#6b7280;font-size:12px">SkillPay — India's Student Freelance Marketplace</p>
+      </div>
+    `;
+
+    // Don't await — respond immediately and let email deliver in background
+    sendEmail(user.email, 'Verify your SkillPay Email Address', message)
+      .then(() => console.log(`[Email] OTP sent to ${user.email}`))
+      .catch((err) => {
+        console.error(`[Email] Failed to send OTP to ${user.email}:`, err.message);
+        // Clear transporter singleton so the next attempt gets a fresh connection
+        try { require('./auth.controller').__resetEmailTransporter?.(); } catch (_) {}
+      });
+
+    return res.status(201).json({
+      success: true,
+      message:
+        'Registration successful! Please check your email (including spam folder) for your OTP verification code.',
+    });
   } catch (error) {
     next(error);
   }
 };
+
 
 // @desc    Verify email with OTP
 // @route   GET /api/auth/verify-email/:otp

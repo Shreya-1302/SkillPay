@@ -23,11 +23,11 @@ const Register = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      await register(formData);
-      toast.success('Registration successful! Please check your email for the OTP.');
+      const data = await register(formData);
+      toast.success(data.message || 'Registration successful! Check your email for the OTP.');
       navigate('/verify-email');
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Registration failed');
+      toast.error(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -126,20 +126,23 @@ const Register = () => {
                   type="password"
                   required
                   className="focus:ring-primary focus:border-primary block w-full pl-10 sm:text-sm border-input rounded-md bg-background text-foreground h-10 border px-3"
-                  placeholder="••••••••"
+                  placeholder="Min 8 chars, 1 uppercase, 1 number"
                   value={formData.password}
                   onChange={handleChange}
                 />
               </div>
+              <p className="mt-1 text-xs text-muted-foreground">Must be 8+ characters with at least 1 uppercase letter and 1 number.</p>
             </div>
 
             <div>
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full flex justify-center items-center gap-2 py-2.5 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Sign up'}
+                {loading ? (
+                  <><Loader2 className="animate-spin h-5 w-5" /> <span>Creating account…</span></>
+                ) : 'Sign up'}
               </button>
             </div>
           </form>

@@ -80,20 +80,33 @@ app.use('/api/admin', require('./routes/admin.routes'));
 app.use('/api/reviews', require('./routes/review.routes'));
 app.use('/api/milestones', require('./routes/milestone.routes'));
 
-// Serve static assets in production
-// if (process.env.NODE_ENV === 'production') {
-//   app.use(express.static(path.join(__dirname, '../client/dist')));
-//   app.get(/.*/, (req, res) => {
-//     res.sendFile(path.resolve(__dirname, '../client/dist/index.html'));
-//   });
-// }
+// Serve static assets (React SPA) — works in both production and when user
+// opens the backend port directly during development.
+const clientDist = path.join(__dirname, '../client/dist');
+const fs = require('fs');
 
-app.get("/", (req, res) => {
-  res.json({
-    success: true,
-    message: "SkillPay API Running"
+if (fs.existsSync(path.join(clientDist, 'index.html'))) {
+  // Serve built static files
+  app.use(express.static(clientDist));
+
+  // Health-check / API root — must come before the SPA catch-all
+  app.get('/api', (req, res) => {
+    res.json({ success: true, message: 'SkillPay API Running' });
   });
-});
+
+  // SPA catch-all: any non-API route gets index.html so React Router works
+  app.get(/^(?!\/api).*/, (req, res) => {
+    res.sendFile(path.join(clientDist, 'index.html'));
+  });
+} else {
+  // No built client yet — just expose a health check on root
+  app.get('/', (req, res) => {
+    res.json({
+      success: true,
+      message: 'SkillPay API Running (client not built — run: npm run build in /client)',
+    });
+  });
+}
 
 // Global Error Handler (must be after routes)
 app.use(errorHandler);
