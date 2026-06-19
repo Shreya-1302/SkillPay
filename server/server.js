@@ -94,6 +94,20 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+app.post('/api/health/test-email', async (req, res) => {
+  try {
+    const { to } = req.body;
+    if (!to) {
+      return res.status(400).json({ error: 'Please provide a "to" email address' });
+    }
+    const sendEmail = require('./utils/sendEmail');
+    await sendEmail(to, 'SkillPay Live Render Test Email', '<h1>It works!</h1><p>This is a test email sent from the live Render server.</p>');
+    res.json({ success: true, message: 'Email sent successfully!' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message, stack: err.stack });
+  }
+});
+
 // Serve static assets (React SPA) — works in both production and when user
 // opens the backend port directly during development.
 const clientDist = path.join(__dirname, '../client/dist');
