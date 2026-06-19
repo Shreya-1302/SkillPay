@@ -83,6 +83,17 @@ app.use('/api/admin', require('./routes/admin.routes'));
 app.use('/api/reviews', require('./routes/review.routes'));
 app.use('/api/milestones', require('./routes/milestone.routes'));
 
+// Health-check — useful for debugging Render env var issues
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    emailConfigured: !!(process.env.EMAIL_USER && process.env.EMAIL_PASS),
+    emailUser: process.env.EMAIL_USER ? process.env.EMAIL_USER.replace(/(.{3}).*(@.*)/, '$1***$2') : 'NOT SET',
+    mongoConnected: require('mongoose').connection.readyState === 1,
+    node: process.version,
+  });
+});
+
 // Serve static assets (React SPA) — works in both production and when user
 // opens the backend port directly during development.
 const clientDist = path.join(__dirname, '../client/dist');

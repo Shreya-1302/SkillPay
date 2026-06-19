@@ -3,44 +3,53 @@ const nodemailer = require('nodemailer');
 let _transporter = null;
 
 /**
- * Returns a cached nodemailer transporter.
- * Call warmUp() on server start to establish the connection early.
+ * Returns a cached nodemailer transporter using Gmail SMTP on port 587 (STARTTLS).
+ * Port 587 is used instead of 465 because many cloud hosts (Render, Railway, etc.)
+ * block outbound port 465 but allow 587.
  */
 const getTransporter = () => {
   if (_transporter) return _transporter;
 
   _transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,          // STARTTLS (not SSL) — works on Render
     auth: {
       user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      pass: process.env.EMAIL_PASS,  // Gmail App Password (spaces are OK)
     },
-    pool: true,           // Keep a pool of SMTP connections open
+    pool: true,             // Reuse SMTP connections
     maxConnections: 3,
-    connectionTimeout: 10000,
-    greetingTimeout:   10000,
-    socketTimeout:     15000,
+    connectionTimeout: 15000,
+    greetingTimeout:   15000,
+    socketTimeout:     20000,
+    tls: {
+      rejectUnauthorized: false,  // Allow self-signed certs on some servers
+    },
   });
 
   return _transporter;
 };
 
 /**
- * Call once at server startup to pre-warm the SMTP connection so the
- * first real email send is instant instead of waiting for TLS handshake.
+ * Pre-warm the SMTP connection at server startup.
+ * Called once from server.js so the first registration email is instant.
  */
 const warmUp = () => {
-  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) return;
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.log('[Email] No credentials configured — email disabled.');
+    return;
+  }
   const t = getTransporter();
   t.verify((err) => {
     if (err) console.warn('[Email] SMTP warm-up failed:', err.message);
-    else     console.log('[Email] SMTP connection ready.');
+    else     console.log('[Email] SMTP ready on smtp.gmail.com:587');
   });
 };
 
 /**
- * Send an HTML email via Gmail.
- * @throws {Error} on failure — callers should .catch() it.
+ * Send an HTML email.
+ * @throws {Error} on failure so callers can .catch() it.
  */
 const sendEmail = async (to, subject, html) => {
   const transporter = getTransporter();
