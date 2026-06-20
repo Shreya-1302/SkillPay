@@ -164,7 +164,7 @@ const GigDetail = () => {
             {/* Description */}
             <div>
               <h2 className="text-2xl font-bold mb-4">About This Service</h2>
-              <div className="prose prose-invert max-w-none text-muted-foreground whitespace-pre-wrap">
+              <div className="prose prose-invert max-w-none text-muted-foreground whitespace-pre-wrap break-words">
                 {gig.description}
               </div>
             </div>

@@ -192,7 +192,7 @@ const OrderDetail = () => {
                 <FileText className="h-5 w-5" />
                 Project Requirements
               </h2>
-              <div className="prose prose-invert max-w-none text-muted-foreground whitespace-pre-wrap bg-secondary/30 p-4 rounded-xl border border-border/50">
+              <div className="prose prose-invert max-w-none text-muted-foreground whitespace-pre-wrap break-words bg-secondary/30 p-4 rounded-xl border border-border/50">
                 {order.requirements || 'No requirements provided.'}
               </div>
             </div>
@@ -224,7 +224,7 @@ const OrderDetail = () => {
                   /* Existing review */
                   <div className="bg-secondary/30 rounded-xl p-4 border border-border/50">
                     <StarRating value={order.review?.rating || rating} readOnly />
-                    <p className="mt-3 text-muted-foreground text-sm whitespace-pre-wrap">
+                    <p className="mt-3 text-muted-foreground text-sm whitespace-pre-wrap break-words">
                       {order.review?.comment || comment}
                     </p>
                     <p className="text-xs text-muted-foreground/60 mt-3">
