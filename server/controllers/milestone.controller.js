@@ -106,18 +106,22 @@ const submitMilestone = async (req, res, next) => {
 
     // Notify client via email
     if (order.client?.email) {
-      await sendEmail(
-        order.client.email,
-        `Milestone Submitted: "${milestone.title}"`,
-        `
-          <h2>Milestone Submitted for Review</h2>
-          <p>The student has submitted work for milestone <strong>"${milestone.title}"</strong>.</p>
-          <p><strong>Amount:</strong> ₹${milestone.amount}</p>
-          ${milestone.deliverableNote ? `<p><strong>Student Note:</strong> ${milestone.deliverableNote}</p>` : ''}
-          ${deliverableUrl ? `<p><a href="${deliverableUrl}">View Deliverable</a></p>` : ''}
-          <p>Please log in to SkillPay to approve the milestone or request a revision.</p>
-        `
-      );
+      try {
+        await sendEmail(
+          order.client.email,
+          `Milestone Submitted: "${milestone.title}"`,
+          `
+            <h2>Milestone Submitted for Review</h2>
+            <p>The student has submitted work for milestone <strong>"${milestone.title}"</strong>.</p>
+            <p><strong>Amount:</strong> ₹${milestone.amount}</p>
+            ${milestone.deliverableNote ? `<p><strong>Student Note:</strong> ${milestone.deliverableNote}</p>` : ''}
+            ${deliverableUrl ? `<p><a href="${deliverableUrl}">View Deliverable</a></p>` : ''}
+            <p>Please log in to SkillPay to approve the milestone or request a revision.</p>
+          `
+        );
+      } catch (emailError) {
+        console.error('[Email Error] Failed to send milestone submission email:', emailError.message);
+      }
     }
 
     res.status(200).json({ success: true, data: milestone });
@@ -185,22 +189,26 @@ const approveMilestone = async (req, res, next) => {
 
     // ── Email student ─────────────────────────────────────────────────────────
     if (order.student?.email) {
-      await sendEmail(
-        order.student.email,
-        `💰 Milestone Approved: ₹${studentCredit} Credited`,
-        `
-          <h2>Milestone Approved!</h2>
-          <p>Your milestone <strong>"${milestone.title}"</strong> has been approved by the client.</p>
-          <table style="border-collapse:collapse;width:100%">
-            <tr><td style="padding:8px;border:1px solid #ddd"><strong>Milestone Amount</strong></td><td style="padding:8px;border:1px solid #ddd">₹${milestone.amount}</td></tr>
-            <tr><td style="padding:8px;border:1px solid #ddd"><strong>Platform Fee (8%)</strong></td><td style="padding:8px;border:1px solid #ddd">₹${platformFee}</td></tr>
-            <tr style="background:#f0fff0"><td style="padding:8px;border:1px solid #ddd"><strong>Amount Credited to Wallet</strong></td><td style="padding:8px;border:1px solid #ddd">₹${studentCredit}</td></tr>
-            <tr><td style="padding:8px;border:1px solid #ddd"><strong>New Wallet Balance</strong></td><td style="padding:8px;border:1px solid #ddd">₹${updatedStudent.walletBalance}</td></tr>
-          </table>
-          ${orderComplete ? '<p><strong>🎉 All milestones complete! The order has been marked as completed.</strong></p>' : ''}
-          <p>Log in to SkillPay to request a withdrawal.</p>
-        `
-      );
+      try {
+        await sendEmail(
+          order.student.email,
+          `💰 Milestone Approved: ₹${studentCredit} Credited`,
+          `
+            <h2>Milestone Approved!</h2>
+            <p>Your milestone <strong>"${milestone.title}"</strong> has been approved by the client.</p>
+            <table style="border-collapse:collapse;width:100%">
+              <tr><td style="padding:8px;border:1px solid #ddd"><strong>Milestone Amount</strong></td><td style="padding:8px;border:1px solid #ddd">₹${milestone.amount}</td></tr>
+              <tr><td style="padding:8px;border:1px solid #ddd"><strong>Platform Fee (8%)</strong></td><td style="padding:8px;border:1px solid #ddd">₹${platformFee}</td></tr>
+              <tr style="background:#f0fff0"><td style="padding:8px;border:1px solid #ddd"><strong>Amount Credited to Wallet</strong></td><td style="padding:8px;border:1px solid #ddd">₹${studentCredit}</td></tr>
+              <tr><td style="padding:8px;border:1px solid #ddd"><strong>New Wallet Balance</strong></td><td style="padding:8px;border:1px solid #ddd">₹${updatedStudent.walletBalance}</td></tr>
+            </table>
+            ${orderComplete ? '<p><strong>🎉 All milestones complete! The order has been marked as completed.</strong></p>' : ''}
+            <p>Log in to SkillPay to request a withdrawal.</p>
+          `
+        );
+      } catch (emailError) {
+        console.error('[Email Error] Failed to send milestone approval email:', emailError.message);
+      }
     }
 
     // ── Socket.IO real-time notification ─────────────────────────────────────
@@ -266,19 +274,23 @@ const requestRevision = async (req, res, next) => {
 
     // Email student about revision request
     if (order.student?.email) {
-      await sendEmail(
-        order.student.email,
-        `Revision Requested: "${milestone.title}"`,
-        `
-          <h2>Revision Requested</h2>
-          <p>The client has requested a revision for milestone <strong>"${milestone.title}"</strong>.</p>
-          <p><strong>Client's Note:</strong></p>
-          <blockquote style="border-left:4px solid #ccc;margin:0;padding:8px 16px;color:#555">
-            ${revisionNote}
-          </blockquote>
-          <p>Please update your work and resubmit the milestone on SkillPay.</p>
-        `
-      );
+      try {
+        await sendEmail(
+          order.student.email,
+          `Revision Requested: "${milestone.title}"`,
+          `
+            <h2>Revision Requested</h2>
+            <p>The client has requested a revision for milestone <strong>"${milestone.title}"</strong>.</p>
+            <p><strong>Client's Note:</strong></p>
+            <blockquote style="border-left:4px solid #ccc;margin:0;padding:8px 16px;color:#555">
+              ${revisionNote}
+            </blockquote>
+            <p>Please update your work and resubmit the milestone on SkillPay.</p>
+          `
+        );
+      } catch (emailError) {
+        console.error('[Email Error] Failed to send milestone revision email:', emailError.message);
+      }
     }
 
     res.status(200).json({ success: true, data: milestone });
